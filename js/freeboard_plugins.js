@@ -652,7 +652,7 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		else
 		{
 			$("#toggle-header-icon").addClass("icon-chevron-up").removeClass("icon-wrench");
-			$(".gridster .gs_w").css({cursor: "pointer"});
+			$(".gridster .gs_w").css({cursor: "move"});
 			$("#main-header").animate({"top": "0px"}, animateLength);
 			$("#board-content").animate({"top": (barHeight + 20) + "px"}, animateLength);
 			$("#main-header").data().shown = true;
@@ -980,11 +980,11 @@ function FreeboardUI()
 	{
 		if(show)
 		{
-			$(element).find(".sub-section-tools").fadeIn(250);
+			$(element).find(".sub-section-tools").fadeIn(150);
 		}
 		else
 		{
-			$(element).find(".sub-section-tools").fadeOut(250);
+			$(element).find(".sub-section-tools").fadeOut(150);
 		}
 	}
 
@@ -2600,6 +2600,56 @@ var freeboard = (function()
 
 	var developerConsole = new DeveloperConsole(theFreeboardModel);
 
+	ko.bindingHandlers.editableText = {
+		init: function(element, valueAccessor, allBindingsAccessor)
+		{
+			var observable = valueAccessor();
+			var allBindings = allBindingsAccessor();
+			var save = function()
+			{
+				var value = $.trim($(element).text());
+				if(value.length === 0)
+				{
+					value = "Untitled Pane";
+				}
+				observable(value);
+			};
+
+			$(element)
+				.attr("spellcheck", "false")
+				.on("mousedown", function(event)
+				{
+					if($(element).attr("contenteditable") === "true")
+					{
+						event.stopPropagation();
+					}
+				})
+				.on("blur", save)
+				.on("keydown", function(event)
+				{
+					if(event.which === 13)
+					{
+						event.preventDefault();
+						$(element).blur();
+					}
+				});
+
+			ko.computed(function()
+			{
+				var editable = ko.unwrap(allBindings.editable);
+				$(element).attr("contenteditable", editable ? "true" : "false");
+			});
+		},
+		update: function(element, valueAccessor)
+		{
+			var value = ko.unwrap(valueAccessor()) || "";
+			if($(element).text() !== value)
+			{
+				$(element).text(value);
+			}
+		}
+	};
+
 	var currentStyle = {
 		values: {
 			"font-family": '"HelveticaNeue-UltraLight", "Helvetica Neue Ultra Light", "Helvetica Neue", sans-serif',
@@ -2631,6 +2681,11 @@ var freeboard = (function()
 			{
 				title = "Pane";
 			}
+
+			$(element).mousedown(function(event)
+			{
+				event.stopPropagation();
+			});
 
 			$(element).click(function(event)
 			{
