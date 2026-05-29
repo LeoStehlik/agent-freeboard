@@ -15,7 +15,7 @@
 
 		var currentValue = $(textElement).text();
 
-        if (currentValue == newValue)
+        if (currentValue === newValue)
             return;
 
         if ($.isNumeric(newValue) && $.isNumeric(currentValue)) {
@@ -372,6 +372,10 @@
 
         var currentSettings = settings;
 
+        function showValueEnabled() {
+            return currentSettings.show_value !== false && currentSettings.show_value !== "false";
+        }
+
         function createGauge() {
             if (!rendered) {
                 return;
@@ -386,7 +390,8 @@
                 max: (_.isUndefined(currentSettings.max_value) ? 0 : currentSettings.max_value),
                 label: currentSettings.units,
                 showInnerShadow: false,
-                valueFontColor: "#d3d4d4"
+                valueFontColor: "#d3d4d4",
+                showValue: showValueEnabled()
             });
         }
 
@@ -397,7 +402,7 @@
         }
 
         this.onSettingsChanged = function (newSettings) {
-            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units) {
+            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units || newSettings.show_value != currentSettings.show_value) {
                 currentSettings = newSettings;
                 createGauge();
             }
@@ -458,6 +463,12 @@
                 display_name: "Maximum",
                 type: "text",
                 default_value: 100
+            },
+            {
+                name: "show_value",
+                display_name: "Show Value",
+                type: "boolean",
+                default_value: true
             }
         ],
         newInstance: function (settings, newInstanceCallback) {
@@ -1126,7 +1137,7 @@
         }
     });
 
-    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%");
+    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%;overflow:auto;box-sizing:border-box;");
 
     var htmlWidget = function (settings) {
         var self = this;
