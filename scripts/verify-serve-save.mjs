@@ -34,6 +34,8 @@ child.stderr.on("data", (chunk) => { output += chunk; });
 
 try {
   await waitForServer(`http://127.0.0.1:${port}/dashboard.json`);
+  const html = await fetch(`http://127.0.0.1:${port}/`).then((response) => response.text());
+  if (!html.includes("Project Save Mode")) throw new Error("Project Save Mode status is missing from the editor header");
   const dashboard = await fetch(`http://127.0.0.1:${port}/dashboard.json`).then((response) => response.json());
   dashboard.panes[0].title = "Serve Save Smoke";
 
