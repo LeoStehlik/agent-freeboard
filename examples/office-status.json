@@ -1,16 +1,16 @@
 {
   "schemaVersion": 2,
   "generatedBy": "francis",
-  "updated": "2026-05-29T22:26:53Z",
+  "updated": "2026-05-29T22:30:19Z",
   "focus": {
-    "name": "Agent Freeboard product slice",
-    "desc": "Renamed repo to agent-freeboard, updated description/README, and shipped first agent CLI for validate/create/deploy dashboard workflows",
+    "name": "Agent Freeboard office dashboard",
+    "desc": "Created the office dashboard in Agent Freeboard on Kobe using org/status.json as the datasource and served it from the preview container",
     "pct": 100
   },
   "agents": {
     "francis": {
       "status": "completed",
-      "task": "Renamed Freeboard repo to agent-freeboard and shipped first dashboard build/deploy CLI slice"
+      "task": "Built and served the office dashboard in Agent Freeboard on Kobe"
     },
     "nox": {
       "status": "idle",
@@ -22,6 +22,12 @@
     }
   },
   "history": [
+    {
+      "name": "Agent Freeboard office dashboard",
+      "desc": "Added examples/office-dashboard.json, examples/office-dashboard-spec.json, and examples/office-status.json; rebuilt Kobe preview and served the dashboard at /#source=examples/office-dashboard.json",
+      "status": "completed",
+      "pct": 100
+    },
     {
       "name": "Agent Freeboard product slice",
       "desc": "Renamed LeoStehlik/freeboard to LeoStehlik/agent-freeboard, updated repo description as an AI-enabled dashboard builder and free open-source Geckoboard alternative, added agent-freeboard CLI validate/create/deploy commands, and verified CI",
