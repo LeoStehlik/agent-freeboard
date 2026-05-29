@@ -1168,6 +1168,8 @@ header h1 {
 	border-bottom: 1px solid #3a3f43;
 	-webkit-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 
 #toggle-header {
@@ -2054,6 +2056,12 @@ ul, ol {
 
 .form-row {
 	clear: both;
+}
+
+.form-row:after {
+	clear: both;
+	content: "";
+	display: block;
 }
 
 td.table-row-operation {

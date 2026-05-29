@@ -56,7 +56,7 @@ DatasourceModel = function(theFreeboardModel, datasourcePlugins) {
 			}
 
 			// Do we need to load any external scripts?
-			if(datasourceType.external_scripts)
+			if(datasourceType.external_scripts && datasourceType.external_scripts.length > 0)
 			{
 				head.js(datasourceType.external_scripts.slice(0), finishLoad); // Need to clone the array because head.js adds some weird functions to it
 			}
@@ -534,7 +534,7 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		}
 	}
 
-	this.saveDashboardClicked = function(){
+	this.saveDashboardClicked = function(_thisref, event){
 		var target = $(event.currentTarget);
 		var siblingsShown = target.data('siblings-shown') || false;
 		if(!siblingsShown){
@@ -1626,6 +1626,10 @@ PluginEditor = function(jsEditor, valueEditor)
 								{
 									newSettings.settings[settingDef.name] = Number($(this).val());
 								}
+								else if(settingDef.type == "integer")
+								{
+									newSettings.settings[settingDef.name] = parseInt($(this).val(), 10);
+								}
 								else
 								{
 									newSettings.settings[settingDef.name] = $(this).val();
@@ -2215,7 +2219,7 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 			}
 
 			// Do we need to load any external scripts?
-			if (widgetType.external_scripts) {
+			if (widgetType.external_scripts && widgetType.external_scripts.length > 0) {
 				head.js(widgetType.external_scripts.slice(0), finishLoad); // Need to clone the array because head.js adds some weird functions to it
 			}
 			else {
@@ -2369,7 +2373,7 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 	}
 
 	this.dispose = function () {
-
+		disposeWidgetInstance();
 	}
 
 	this.serialize = function () {
