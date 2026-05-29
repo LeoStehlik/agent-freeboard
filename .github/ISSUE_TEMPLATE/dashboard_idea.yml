@@ -1,0 +1,22 @@
+name: Dashboard idea
+description: Suggest an example dashboard, widget flow, or agent-generated dashboard pattern
+title: "Dashboard idea: "
+labels: [dashboard]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What would this dashboard help someone monitor or operate?
+    validations:
+      required: true
+  - type: textarea
+    id: data-sources
+    attributes:
+      label: Data sources
+      description: JSON, MQTT, static file, API, webhook output, or another source?
+  - type: textarea
+    id: done
+    attributes:
+      label: What would make it useful?
+      description: List the widgets, layout, or workflow you would expect.

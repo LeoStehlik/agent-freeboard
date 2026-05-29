@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { createServer } from "node:http";
+import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -21,11 +22,13 @@ Usage:
   agent-freeboard validate <dashboard.json>
   agent-freeboard create <spec.json> --out <dashboard.json>
   agent-freeboard deploy <dashboard.json> --out <directory>
+  agent-freeboard serve <dashboard.json> [--port 8080] [--host 127.0.0.1] [--write]
 
 Commands:
   validate  Check a Freeboard dashboard JSON file.
   create    Build a dashboard JSON file from an agent-friendly spec.
   deploy    Copy the static app plus a dashboard JSON into a deployable directory.
+  serve     Serve the app locally, with optional write-back to the dashboard file.
 `);
 }
 
@@ -45,6 +48,10 @@ function readJson(path) {
 function writeJson(path, value) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function hasFlag(args, name) {
+  return args.includes(name);
 }
 
 function option(args, name) {
@@ -246,6 +253,138 @@ function deployCommand(args) {
   console.log(`Open: ${join(out, "index.html")}#source=dashboard.json`);
 }
 
+
+const mimeTypes = {
+  ".css": "text/css; charset=utf-8",
+  ".gif": "image/gif",
+  ".html": "text/html; charset=utf-8",
+  ".ico": "image/x-icon",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".js": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".map": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".svg": "image/svg+xml; charset=utf-8",
+};
+
+function send(response, status, body, headers = {}) {
+  response.writeHead(status, headers);
+  response.end(body);
+}
+
+function sendJson(response, status, value) {
+  send(response, status, `${JSON.stringify(value, null, 2)}\n`, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+  });
+}
+
+function readRequestBody(request, limit = 5 * 1024 * 1024) {
+  return new Promise((resolveBody, rejectBody) => {
+    let body = "";
+    request.setEncoding("utf8");
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > limit) {
+        rejectBody(new Error("Request body is too large."));
+        request.destroy();
+      }
+    });
+    request.on("end", () => resolveBody(body));
+    request.on("error", rejectBody);
+  });
+}
+
+function serveStatic(requestPath, response) {
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(requestPath === "/" ? "/index.html" : requestPath);
+  } catch {
+    send(response, 400, "Bad request\n", { "content-type": "text/plain; charset=utf-8" });
+    return;
+  }
+
+  const candidate = resolve(repoRoot, `.${decodedPath}`);
+  const relativePath = relative(repoRoot, candidate);
+
+  if (relativePath.startsWith("..") || relativePath === "" || relativePath.split(/[\\/]/).includes("node_modules")) {
+    send(response, 403, "Forbidden\n", { "content-type": "text/plain; charset=utf-8" });
+    return;
+  }
+
+  if (!existsSync(candidate)) {
+    send(response, 404, "Not found\n", { "content-type": "text/plain; charset=utf-8" });
+    return;
+  }
+
+  send(response, 200, readFileSync(candidate), {
+    "content-type": mimeTypes[extname(candidate).toLowerCase()] ?? "application/octet-stream",
+  });
+}
+
+function serveCommand(args) {
+  const dashboardPath = resolve(args[0] ?? fail("Usage: agent-freeboard serve <dashboard.json> [--port 8080] [--host 127.0.0.1] [--write]"));
+  const port = Number(option(args, "--port") ?? 8080);
+  const host = option(args, "--host") ?? "127.0.0.1";
+  const writeEnabled = hasFlag(args, "--write");
+  const dashboard = readJson(dashboardPath);
+  const errors = validateDashboard(dashboard, dashboardPath);
+  if (errors.length) fail(errors.join("\n"));
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) fail("--port must be a valid TCP port.");
+
+  if (writeEnabled && !["127.0.0.1", "localhost", "::1"].includes(host)) {
+    console.warn(`Warning: write mode is enabled while binding to ${host}. Only use this on a trusted network.`);
+  }
+
+  const server = createServer(async (request, response) => {
+    const url = new URL(request.url, `http://${request.headers.host ?? `${host}:${port}`}`);
+
+    if (request.method === "GET" && url.pathname === "/dashboard.json") {
+      send(response, 200, readFileSync(dashboardPath), {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      });
+      return;
+    }
+
+    if (request.method === "PUT" && url.pathname === "/api/dashboard") {
+      if (!writeEnabled) {
+        sendJson(response, 403, { ok: false, error: "Write mode is disabled. Start with --write to save changes." });
+        return;
+      }
+      try {
+        const body = await readRequestBody(request);
+        const nextDashboard = JSON.parse(body);
+        const writeErrors = validateDashboard(nextDashboard, dashboardPath);
+        if (writeErrors.length) {
+          sendJson(response, 400, { ok: false, errors: writeErrors });
+          return;
+        }
+        writeJson(dashboardPath, nextDashboard);
+        sendJson(response, 200, { ok: true, path: dashboardPath });
+      } catch (error) {
+        sendJson(response, 400, { ok: false, error: error.message });
+      }
+      return;
+    }
+
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      send(response, 405, "Method not allowed\n", { "content-type": "text/plain; charset=utf-8" });
+      return;
+    }
+
+    serveStatic(url.pathname, response);
+  });
+
+  server.listen(port, host, () => {
+    const openUrl = `http://${host}:${port}/#source=/dashboard.json&edit=true${writeEnabled ? "&save=/api/dashboard" : ""}`;
+    console.log(`Serving Agent Freeboard at ${openUrl}`);
+    console.log(`Dashboard file: ${dashboardPath}`);
+    console.log(`Write mode: ${writeEnabled ? "enabled" : "disabled"}`);
+  });
+}
+
 const [command, ...args] = process.argv.slice(2);
 
 if (!command || command === "--help" || command === "-h") {
@@ -256,6 +395,7 @@ if (!command || command === "--help" || command === "-h") {
 if (command === "validate") validateCommand(args);
 else if (command === "create") createCommand(args);
 else if (command === "deploy") deployCommand(args);
+else if (command === "serve") serveCommand(args);
 else {
   usage();
   fail(`Unknown command: ${command}`);

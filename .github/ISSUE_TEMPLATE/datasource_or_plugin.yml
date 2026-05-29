@@ -1,0 +1,22 @@
+name: Datasource or plugin request
+description: Request a bundled datasource, widget, plugin, or integration
+title: "Plugin request: "
+labels: [plugin]
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source or service
+      description: Name and link for the API, broker, device, or plugin.
+    validations:
+      required: true
+  - type: textarea
+    id: shape
+    attributes:
+      label: Data shape
+      description: Example payloads, topics, fields, or widget output.
+  - type: textarea
+    id: value
+    attributes:
+      label: Why it belongs in Agent Freeboard
+      description: Who would use this, and why should it be bundled rather than custom plugin code?

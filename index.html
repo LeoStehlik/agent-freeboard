@@ -18,8 +18,12 @@
                         freeboard.initialize(true);
 
                         var hashpattern = window.location.hash.match(/(&|#)source=([^&]+)/);
+                        var savepattern = window.location.hash.match(/(&|#)save=([^&]+)/);
+                        if (savepattern !== null) {
+                            window.agentFreeboardSaveEndpoint = decodeURIComponent(savepattern[2]);
+                        }
                         if (hashpattern !== null) {
-                            $.getJSON(hashpattern[2], function(data) {
+                            $.getJSON(decodeURIComponent(hashpattern[2]), function(data) {
                                 freeboard.loadDashboard(data, function() {
                                     var editpattern = window.location.hash.match(/(&|#)edit=(true|1|yes)/i);
                                     freeboard.setEditing(editpattern !== null);
@@ -46,9 +50,9 @@
                 <h1 id="board-logo" class="title bordered">agent-freeboard editor</h1>
                 <div id="board-actions">
                     <ul class="board-toolbar vertical">
-                        <li data-bind="click: loadDashboardFromLocalFile"><i id="full-screen-icon" class="icon-folder-open icon-white"></i><label id="full-screen">Load Freeboard</label></li>
+                        <li data-bind="click: loadDashboardFromLocalFile"><i id="full-screen-icon" class="icon-folder-open icon-white"></i><label id="full-screen">Load Dashboard</label></li>
                         <li><i class="icon-download-alt icon-white"></i>
-                            <label data-bind="click: saveDashboardClicked">Save Freeboard</label>
+                            <label data-bind="click: saveDashboardClicked">Save Dashboard</label>
                             <label style="display: none;" data-bind="click: saveDashboard" data-pretty="true">[Pretty]</label>
                             <label style="display: none;" data-bind="click: saveDashboard" data-pretty="false">[Minified]</label>
                         </li>

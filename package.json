@@ -20,8 +20,9 @@
     "verify:cli": "node scripts/agent-freeboard.mjs validate examples/freeboard-demo.json && node scripts/agent-freeboard.mjs create examples/agent-dashboard-spec.json --out .artifacts/agent-dashboard.json && node scripts/agent-freeboard.mjs deploy .artifacts/agent-dashboard.json --out .artifacts/agent-dashboard-site",
     "verify:assets": "node scripts/verify-static-assets.mjs",
     "verify:examples": "node scripts/verify-dashboard-examples.mjs",
-    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples && npm run verify:cli",
-    "serve": "python3 -m http.server 8080"
+    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples && npm run verify:cli && npm run verify:serve",
+    "serve": "node scripts/agent-freeboard.mjs serve examples/freeboard-demo.json",
+    "verify:serve": "node scripts/verify-serve-save.mjs"
   },
   "devDependencies": {
     "grunt": "^1.6.2",

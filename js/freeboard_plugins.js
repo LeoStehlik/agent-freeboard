@@ -535,6 +535,24 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 	}
 
 	this.saveDashboardClicked = function(_thisref, event){
+		if(window.agentFreeboardSaveEndpoint)
+		{
+			$.ajax({
+				url: window.agentFreeboardSaveEndpoint,
+				type: "PUT",
+				data: JSON.stringify(self.serialize(), null, "\t"),
+				contentType: "application/json",
+				success: function(){
+					alert("Dashboard saved.");
+				},
+				error: function(xhr){
+					var message = xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.errors);
+					alert("Dashboard save failed: " + (message || xhr.statusText || "unknown error"));
+				}
+			});
+			return;
+		}
+
 		var target = $(event.currentTarget);
 		var siblingsShown = target.data('siblings-shown') || false;
 		if(!siblingsShown){
@@ -544,7 +562,6 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		}
 		target.data('siblings-shown', !siblingsShown);
 	}
-
 	this.saveDashboard = function(_thisref, event)
 	{
 		var pretty = $(event.currentTarget).data('pretty');

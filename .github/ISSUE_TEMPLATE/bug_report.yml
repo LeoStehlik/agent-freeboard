@@ -1,0 +1,32 @@
+name: Bug report
+description: Report something broken in Agent Freeboard
+title: "Bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did Agent Freeboard do instead?
+    validations:
+      required: true
+  - type: input
+    id: dashboard
+    attributes:
+      label: Dashboard or URL
+      description: Link to a public dashboard JSON, gist, or repo path if you can share it.
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open ...
+        2. Add ...
+        3. Save ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, Node version, Docker image/tag if relevant.

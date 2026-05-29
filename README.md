@@ -1,12 +1,13 @@
 # Agent Freeboard
 
 [![Build](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/ci.yml)
+[![Container](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/docker.yml)
 
 AI-enabled dashboard builder and free open-source alternative to Geckoboard, based on the original Freeboard static dashboard project.
 
-Agent Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It still keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
+Agent Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
 
-This fork exists because the original hosted product and old demo links are gone. The goal here is to keep the open-source dashboard useful while making it easier for agents and automation to build, verify, and deploy dashboards: modern build tooling, clean static serving, better examples, safer verification, editor polish, and a first CLI surface without turning it into a heavy hosted SaaS app.
+This fork exists because the original hosted product and old demo links are gone. The product direction is intentionally practical: static and agent-generated dashboards you can host anywhere, plus a small local/project save mode when you want the editor to write a dashboard JSON file back to disk. The aim is modern build tooling, clean static serving, useful examples, safer verification, editor polish, and agent-friendly automation without turning Agent Freeboard into a heavy hosted SaaS app.
 
 ## Current Status
 
@@ -14,17 +15,17 @@ This fork exists because the original hosted product and old demo links are gone
 - Node.js 22 used for local development
 - Grunt 1.x build chain
 - `npm audit` clean at the maintained dependency layer
-- Static Docker image served by nginx
+- Static Docker image served by nginx and published to GHCR
 - GitHub Actions CI for Node 20 and 22
 - Maintained bundled demo dashboard
 - Static asset and example-dashboard verification
 - First canvas-first editor affordances: inline pane titles and on-canvas add-widget controls
 - Bundled MQTT datasource using the Eclipse Paho browser client
-- Agent-oriented CLI for validating, creating, and deploying static dashboard bundles
+- Agent-oriented CLI for validating, creating, deploying, and locally saving dashboard bundles
 
 ## Build Proof
 
-The GitHub Actions build runs on every push and pull request, plus manual dispatch. It installs dependencies with `npm ci` and runs `npm run verify` on Node.js 20 and 22. Verification audits maintained dependencies, rebuilds distributable bundles, checks static asset references, validates bundled dashboard examples, and exercises the `agent-freeboard` CLI validate/create/deploy path.
+The GitHub Actions build runs on every push and pull request, plus manual dispatch. It installs dependencies with `npm ci` and runs `npm run verify` on Node.js 20 and 22. Verification audits maintained dependencies, rebuilds distributable bundles, checks static asset references, validates bundled dashboard examples, and exercises the `agent-freeboard` CLI validate/create/deploy path and the local Project Save Mode write endpoint.
 
 ## Demo
 
@@ -54,9 +55,9 @@ Then open:
 http://localhost:8003/#source=examples/freeboard-demo.json
 ```
 
-## Screenshots
+## Screenshot
 
-The historical screenshots from the original project are intentionally not embedded here. They pointed at the old upstream branding repo and made this fork look abandoned. Fresh screenshots should be generated from the maintained demo dashboard when the visual direction settles.
+![Agent Freeboard office dashboard](docs/assets/office-dashboard.png)
 
 ## What It Includes
 
@@ -70,7 +71,7 @@ Agent Freeboard provides:
 - plugin loading for custom datasource and widget scripts
 - static build artifacts for simple hosting
 
-It does not include hosted accounts, database persistence, sharing, auth, or server-side save/load APIs. If you need those, put Agent Freeboard behind your own application shell and use `freeboard.serialize()` / `freeboard.loadDashboard()`.
+It does not include hosted accounts, sharing, auth, or a multi-user database. If you need those, put Agent Freeboard behind your own application shell and use `freeboard.serialize()` / `freeboard.loadDashboard()`. For local project editing, use Project Save Mode below.
 
 ## Install
 
@@ -106,6 +107,14 @@ The generated site opens at:
 ```text
 .artifacts/agent-dashboard-site/index.html#source=dashboard.json
 ```
+
+Project Save Mode serves the app locally and lets the editor write the selected dashboard JSON file back to disk:
+
+```bash
+npm run agent-freeboard -- serve examples/office-dashboard-editable.json --port 8080 --write
+```
+
+Then open the URL printed by the command. By default it binds to `127.0.0.1`; if you bind write mode to another host, treat it as a trusted-network tool.
 
 The compact spec is intentionally boring JSON so agents, MCP tools, scripts, and CI jobs can emit it without needing to understand every Freeboard widget field. A metric looks like:
 
@@ -145,6 +154,12 @@ Then open:
 
 ```text
 http://localhost:8003/
+```
+
+Published images are available from GitHub Container Registry:
+
+```bash
+docker run --rm -p 8003:80 ghcr.io/leostehlik/agent-freeboard:latest
 ```
 
 ## Dashboard JSON
