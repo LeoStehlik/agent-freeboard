@@ -141,6 +141,24 @@ Payload behavior:
 - MQTT v5 `userProperties` are copied onto the payload object.
 - The datasource exposes a `connected` boolean.
 
+## Calculated Values
+
+Calculated widget fields still accept JavaScript expressions against `datasources`.
+
+Simple example:
+
+```javascript
+datasources["Demo API"].service.error_rate
+```
+
+For deeper JSON where long bracket chains get awkward, use `freeboard.selectPath(data, path)`.
+
+```javascript
+freeboard.selectPath(datasources["Demo API"], "/service/error_rate")
+```
+
+`selectPath` supports JSON Pointer-style `/a/b/0` paths for plain objects and arrays. If passed a DOM node or document, it evaluates the path as browser XPath and returns a scalar value or an array of matching node text values.
+
 ## API
 
 All API calls are made on the `freeboard` singleton object.
@@ -250,6 +268,16 @@ Updates settings on a datasource.
 > **datasourceName** (string) - The datasource name in the dashboard.
 
 > **settings** (object) - Key-value pairs to merge with the datasource's current settings.
+
+-------
+
+**freeboard.selectPath(data, path)**
+
+Selects a nested value for use in calculated widget expressions.
+
+> **data** (object, array, DOM node, or document) - The value to query.
+
+> **path** (string) - JSON Pointer-style path for objects/arrays, or browser XPath for DOM nodes/documents.
 
 -------
 

@@ -2884,6 +2884,96 @@ var freeboard = (function()
 		return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 	}
 
+	function unescapeJsonPointerSegment(segment)
+	{
+		return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+	}
+
+	function selectFromObject(data, path)
+	{
+		if(_.isUndefined(data) || data === null || _.isUndefined(path) || path === "")
+		{
+			return data;
+		}
+
+		var segments;
+
+		if(path.charAt(0) == "/")
+		{
+			segments = _.map(path.substring(1).split("/"), unescapeJsonPointerSegment);
+		}
+		else
+		{
+			segments = _.filter(path.replace(/\[(\d+)\]/g, ".$1").split("."), function(segment)
+			{
+				return segment.length > 0 && segment != "$";
+			});
+		}
+
+		return _.reduce(segments, function(currentValue, segment)
+		{
+			if(_.isUndefined(currentValue) || currentValue === null)
+			{
+				return undefined;
+			}
+
+			return currentValue[segment];
+		}, data);
+	}
+
+	function selectFromNode(data, path)
+	{
+		if(!data || !_.isFunction(document.evaluate))
+		{
+			return undefined;
+		}
+
+		var result = document.evaluate(path, data, null, XPathResult.ANY_TYPE, null);
+
+		if(result.resultType == XPathResult.STRING_TYPE)
+		{
+			return result.stringValue;
+		}
+
+		if(result.resultType == XPathResult.NUMBER_TYPE)
+		{
+			return result.numberValue;
+		}
+
+		if(result.resultType == XPathResult.BOOLEAN_TYPE)
+		{
+			return result.booleanValue;
+		}
+
+		var nodes = [];
+		var node;
+
+		while(node = result.iterateNext())
+		{
+			nodes.push(node);
+		}
+
+		if(nodes.length == 1)
+		{
+			return nodes[0].textContent;
+		}
+
+		return _.map(nodes, function(node)
+		{
+			return node.textContent;
+		});
+	}
+
+	function selectPath(data, path)
+	{
+		if(data && data.nodeType)
+		{
+			return selectFromNode(data, path);
+		}
+
+		return selectFromObject(data, path);
+	}
+
 	$(function()
 	{ //DOM Ready
 		// Show the loading indicator when we first load
@@ -3080,6 +3170,10 @@ var freeboard = (function()
 		getStyleObject      : function(name)
 		{
 			return currentStyle[name];
+		},
+		selectPath          : function(data, path)
+		{
+			return selectPath(data, path);
 		},
 		showDeveloperConsole : function()
 		{
