@@ -1,27 +1,29 @@
 {
   "schemaVersion": 2,
   "generatedBy": "francis",
-  "updated": "2026-05-29T22:30:19Z",
+  "updated": "2026-05-29T22:39:03.960Z",
   "focus": {
-    "name": "Agent Freeboard office dashboard",
-    "desc": "Created the office dashboard in Agent Freeboard on Kobe using org/status.json as the datasource and served it from the preview container",
+    "name": "Francis Office",
+    "desc": "Current slice: Agent Freeboard office dashboard polish. Kobe preview is live, repo-native, and rebuilt from the dashboard spec.",
     "pct": 100
   },
   "agents": {
     "francis": {
       "status": "completed",
-      "task": "Built and served the office dashboard in Agent Freeboard on Kobe"
+      "task": "Agent Freeboard office dashboard polished and live on Kobe"
     },
     "nox": {
       "status": "idle",
       "task": "No active Nox task"
-    },
-    "forge": {
-      "status": "idle",
-      "task": "Forge path abandoned after timeout/invalid route; no active task"
     }
   },
   "history": [
+    {
+      "name": "Office dashboard polish",
+      "desc": "Reworked the office dashboard as a viewer-first Agent Freeboard board: no editor header, wider layout, clean HTML status cards, concise agents, and recent work.",
+      "status": "completed",
+      "pct": 100
+    },
     {
       "name": "Agent Freeboard office dashboard",
       "desc": "Added examples/office-dashboard.json, examples/office-dashboard-spec.json, and examples/office-status.json; rebuilt Kobe preview and served the dashboard at /#source=examples/office-dashboard.json",
@@ -73,204 +75,6 @@
     {
       "name": "Freeboard editor modernization",
       "desc": "Pushed dd9de64 with inline pane title editing, on-canvas add-widget controls, shorter editor bar, full npm verify, Playwright smoke, Docker preview, and green CI",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Architecture revert",
-      "desc": "Published visual-architecture@0.2.5; removed security-audit boilerplate and reverted renderer/docs to the concise diagram-focused v0.2.0 shape",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Architecture renderer hardening",
-      "desc": "Published visual-architecture@0.2.4; input/output paths are restricted to project or temp directories and existing outputs require --force",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Architecture confidentiality wording",
-      "desc": "Patched and published visual-architecture@0.2.3; removed copyright/ownership framing and focused on topology/service/trust-boundary disclosure",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Architecture dual-use documentation",
-      "desc": "Patched and published visual-architecture@0.2.2; docs now distinguish human-owned diagram content from concrete renderer security behaviour",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual DNA human-decision correction",
-      "desc": "Patched and published visual-dna@0.2.2; tool reports references used but does not judge ownership, sensitivity, or permission",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "ClawHub low-warning cleanup",
-      "desc": "Patched and published six public skills with explicit activation, data/file/output, sharing, and approval boundaries; local validators passed",
-      "status": "completed",
-      "pct": 95
-    },
-    {
-      "name": "x-search-oauth CLI v0.1",
-      "desc": "Added JS CLI invoking OpenClaw gateway tools.invoke x_search, auth/doctor helpers, docs, and Node tests; pushed c687b04 to master",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Better Every Run Public Surface Patch",
-      "desc": "Published better-every-run@0.1.1; visible docs now show /ber fix, /ber remember, and /ber report instead of helper paths or exact target files",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Better Every Run ClawHub Publish",
-      "desc": "Published better-every-run@0.1.0 under @leostehlik; moderation clean, search-visible, clean temp install and installed make test passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Skill Public Polish",
-      "desc": "Added proof artifacts, Makefile validation, GitHub Actions, badges, and v0.1.0 releases for visual-dna and visual-architecture; master/tag Actions passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Skill GitHub Repos",
-      "desc": "Pushed visual-dna d9140aa and visual-architecture 82fb778, set metadata/topics, and passed clean-clone smoke plus renderer proof",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Visual Skills ClawHub Publish",
-      "desc": "Published visual-dna@0.1.0 and visual-architecture@0.1.0 under @leostehlik; inspect/search/temp-install proof passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Final Showcase Repo Hygiene",
-      "desc": "Updated v0.1.0 release notes, added examples indexes, linked proof artifacts from READMEs, tightened profile wording, and passed consistency audit",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Terminal Demo Assets",
-      "desc": "Added asciinema cast plus animated SVG README demos to Proof Loop and Loopsmith; local tests and GitHub Actions passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Showcase Repo SEO Pass",
-      "desc": "Updated README first-screen wording, use-case anchors, repo descriptions, topics, and profile positioning for the five showcase repos; validations, Actions, and clean-clone smoke passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Credibility Artifacts",
-      "desc": "Added Sovereign Brain architecture SVG, Loopsmith before/after eval, Brief Master messy-to-clean brief, and no-slop-ui before/after HTML; CI and clean-clone smoke passed",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Agent Tool Profile Map",
-      "desc": "Added when-to-use companion repo sections to five repos, created LeoStehlik profile README, and clean-clone smoke tested all public launch repos",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Sibling Repo v0.1.0 Releases",
-      "desc": "brief-master, no-slop-ui, loopsmith, and decoupled-agent-memory received CI validation workflows, green Actions, and public v0.1.0 releases",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Proof Loop v0.1.0 Release",
-      "desc": "README wording tuned in a728acf, CI run 26175082376 passed, and public GitHub release v0.1.0 published",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Proof Loop Standout Upgrade",
-      "desc": "Unified CLI, proof bundle schemas, harness guide templates, make demo transcript, Markdown reports, expanded tests, and PASS artifacts shipped",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Proof Loop Pre-HN Readiness",
-      "desc": "Added make test, unittest coverage, executable wrappers, realistic demo fixture, GitHub Actions CI, HN-ready README section, and Proof Loop PASS artifacts",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Related Repo Cross-Linking",
-      "desc": "Added workflow-specific Related Tools sections to decoupled-agent-memory, proof-loop, loopsmith, brief-master, and no-slop-ui; all pushed and verified clean",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Proof Loop Operational Toolkit",
-      "desc": "Example artifacts, init/check scripts, Loopsmith bridge doc, role briefs, product README, and verification completed; pushed to proof-loop and loopsmith",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "GitHub Repo Garden Audit",
-      "desc": "Initial audit written; decoupled-agent-memory metadata fixed; no-slop-ui README/checklist proof artifact pushed",
-      "status": "active",
-      "pct": 45
-    },
-    {
-      "name": "Guided Review Workspace",
-      "desc": "/brain Review tab can generate proposals, show diffs, apply/reject, and write database-backed review decisions",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Unified Brain Console",
-      "desc": "/brain combines brief, review queue, health counters, and proposal/ledger artifacts with shared local connection state",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Workspace-to-Wiki Sync",
-      "desc": "Idempotent sync into Leo's Wiki, daily 03:20 Europe/Prague",
-      "status": "active",
-      "pct": 90
-    },
-    {
-      "name": "Synthesis Maintainer Layer",
-      "desc": "Six current synthesis pages linked to source documents and graph edges",
-      "status": "active",
-      "pct": 75
-    },
-    {
-      "name": "Maintenance Health Check",
-      "desc": "API and MCP maintenance status verified; daily 03:45 Europe/Prague",
-      "status": "active",
-      "pct": 80
-    },
-    {
-      "name": "Synthesis Review Queue",
-      "desc": "API/MCP/CLI/static review queue proves newer source evidence creates review work and reviewed synthesis clears stale pages",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Review Proposal Generator",
-      "desc": "make proposal-demo generates source-backed proposal markdown/JSON, applies explicitly, and proves review queue clean",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Proposal Acceptance Ledger",
-      "desc": "make ledger-demo writes proposal diffs plus proposed/applied JSONL ledger entries and proves the review queue clean",
-      "status": "completed",
-      "pct": 100
-    },
-    {
-      "name": "Operating Brief Surface",
-      "desc": "make brief-demo shows Needs Review before source-backed repair and Healthy after proposal/ledger apply; /brain-brief and MCP brain_brief added",
       "status": "completed",
       "pct": 100
     }

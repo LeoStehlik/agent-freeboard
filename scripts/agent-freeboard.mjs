@@ -157,6 +157,16 @@ function widgetFromMetric(metric) {
     };
   }
 
+  if (kind === "html") {
+    return {
+      type: "html",
+      settings: {
+        html: value,
+        height: metric.height ?? 4,
+      },
+    };
+  }
+
   return {
     type: "text_widget",
     settings: {
@@ -183,11 +193,13 @@ function createCommand(args) {
   for (const metric of spec.metrics ?? []) {
     const paneName = metric.pane ?? "Dashboard";
     if (!panes.has(paneName)) {
+      const paneWidth = metric.col_width ?? metric.width ?? 1;
       panes.set(paneName, {
         title: paneName,
-        width: metric.width ?? 1,
-        row: { "3": Math.floor(panes.size / 3) * 7 + 1 },
-        col: { "3": (panes.size % 3) + 1 },
+        width: paneWidth,
+        col_width: paneWidth,
+        row: { "3": metric.row ?? Math.floor(panes.size / 3) * 7 + 1 },
+        col: { "3": metric.col ?? (panes.size % 3) + 1 },
         widgets: [],
       });
     }

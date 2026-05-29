@@ -1,5 +1,5 @@
 {
-  "allow_edit": true,
+  "allow_edit": false,
   "header_image": "",
   "datasources": [
     {
@@ -16,8 +16,9 @@
   ],
   "panes": [
     {
-      "title": "Focus",
-      "width": 1,
+      "title": "Office",
+      "width": 3,
+      "col_width": 3,
       "row": {
         "3": 1
       },
@@ -26,36 +27,10 @@
       },
       "widgets": [
         {
-          "type": "text_widget",
+          "type": "html",
           "settings": {
-            "title": "Current Focus",
-            "size": "big",
-            "value": "datasources[\"Office Status\"].focus.name",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
-          }
-        },
-        {
-          "type": "gauge",
-          "settings": {
-            "title": "Progress",
-            "value": "datasources[\"Office Status\"].focus.pct",
-            "units": "%",
-            "min_value": 0,
-            "max_value": 100,
-            "show_value": true
-          }
-        },
-        {
-          "type": "text_widget",
-          "settings": {
-            "title": "Updated",
-            "size": "regular",
-            "value": "datasources[\"Office Status\"].updated",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
+            "html": "return (function(s) {\n  function e(v) { return String(v == null ? \"\" : v).replace(/[&<>\"']/g, function(c) { return ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",\"\\\"\":\"&quot;\",\"'\":\"&#39;\"})[c]; }); }\n  function pct(v) { v = Number(v || 0); return Math.max(0, Math.min(100, v)); }\n  function stamp(v) { var d = new Date(v); return isNaN(d.getTime()) ? e(v || '') : e(d.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })); }\n  var f = s.focus || {};\n  var p = pct(f.pct);\n  return '<div class=\"office-board office-hero\">' +\n    '<div class=\"office-hero-top\"><div><h2>' + e(f.name || 'Office dashboard') + '</h2><p>' + e(f.desc || '') + '</p></div>' +\n    '<div class=\"office-score\"><strong>' + p + '%</strong><span>current slice</span></div></div>' +\n    '<div class=\"office-meter\"><span style=\"width:' + p + '%\"></span></div>' +\n    '<div class=\"office-grid\">' +\n      '<div class=\"office-mini\"><span>Runtime</span><strong>Agent Freeboard / Kobe</strong></div>' +\n      '<div class=\"office-mini\"><span>Updated</span><strong>' + stamp(s.updated) + '</strong></div>' +\n    '</div></div>';\n})(datasources[\"Office Status\"]);",
+            "height": 4
           }
         }
       ]
@@ -63,96 +38,39 @@
     {
       "title": "Agents",
       "width": 1,
+      "col_width": 1,
       "row": {
-        "3": 1
+        "3": 10
       },
       "col": {
-        "3": 2
+        "3": 1
       },
       "widgets": [
         {
-          "type": "indicator",
+          "type": "html",
           "settings": {
-            "title": "Francis",
-            "value": "datasources[\"Office Status\"].agents.francis.status === \"completed\" || datasources[\"Office Status\"].agents.francis.status === \"active\"",
-            "on_text": "Ready",
-            "off_text": "Check"
-          }
-        },
-        {
-          "type": "text_widget",
-          "settings": {
-            "title": "Francis Task",
-            "size": "regular",
-            "value": "datasources[\"Office Status\"].agents.francis.task",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
-          }
-        },
-        {
-          "type": "indicator",
-          "settings": {
-            "title": "Nox",
-            "value": "datasources[\"Office Status\"].agents.nox.status === \"idle\"",
-            "on_text": "Idle",
-            "off_text": "Busy"
+            "html": "return (function(s) {\n  function e(v) { return String(v == null ? \"\" : v).replace(/[&<>\"']/g, function(c) { return ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",\"\\\"\":\"&quot;\",\"'\":\"&#39;\"})[c]; }); }\n  var agents = s.agents || {};\n  var names = ['francis', 'nox'];\n  var rows = names.map(function(name) {\n    var a = agents[name] || {};\n    var status = String(a.status || 'idle').toLowerCase();\n    return '<div class=\"office-row\"><span>' + e(name.charAt(0).toUpperCase() + name.slice(1)) + '</span><strong>' + e(a.task || 'No active task') + '</strong><b class=\"office-status ' + e(status) + '\">' + e(status) + '</b></div>';\n  }).join('');\n  return '<div class=\"office-board office-list\">' + rows + '</div>';\n})(datasources[\"Office Status\"]);",
+            "height": 4
           }
         }
       ]
     },
     {
       "title": "Recent Work",
-      "width": 1,
+      "width": 2,
+      "col_width": 2,
       "row": {
-        "3": 1
+        "3": 10
       },
       "col": {
-        "3": 3
+        "3": 2
       },
       "widgets": [
         {
-          "type": "text_widget",
+          "type": "html",
           "settings": {
-            "title": "Latest",
-            "size": "big",
-            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/name\")",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
-          }
-        },
-        {
-          "type": "gauge",
-          "settings": {
-            "title": "Latest Progress",
-            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/pct\")",
-            "units": "%",
-            "min_value": 0,
-            "max_value": 100,
-            "show_value": true
-          }
-        },
-        {
-          "type": "text_widget",
-          "settings": {
-            "title": "Previous",
-            "size": "regular",
-            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/1/name\")",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
-          }
-        },
-        {
-          "type": "text_widget",
-          "settings": {
-            "title": "Before That",
-            "size": "regular",
-            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/2/name\")",
-            "sparkline": false,
-            "animate": true,
-            "units": ""
+            "html": "return (function(s) {\n  function e(v) { return String(v == null ? \"\" : v).replace(/[&<>\"']/g, function(c) { return ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",\"\\\"\":\"&quot;\",\"'\":\"&#39;\"})[c]; }); }\n  var history = (s.history || []).slice(0, 5);\n  var rows = history.map(function(item) {\n    var status = String(item.status || '').toLowerCase();\n    return '<div class=\"office-row\"><span>' + e(status || 'item') + '</span><strong>' + e(item.name || '') + '</strong><p>' + e(item.desc || '') + '</p></div>';\n  }).join('');\n  return '<div class=\"office-board office-list\">' + rows + '</div>';\n})(datasources[\"Office Status\"]);",
+            "height": 6
           }
         }
       ]
