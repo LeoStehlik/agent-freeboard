@@ -21,16 +21,57 @@ Freeboard is a turn-key HTML-based "engine" for dashboards. Besides a nice looki
 
 The code here is the client-side portion of what you see when you visit a freeboard at http://freeboard.io. It does not include any of the server-side code for user management, saving to a database or public/private functionality— this is left up to you to implement should you want to use freeboard as an online service.
 
+### Status
+
+This fork is being refreshed so freeboard keeps working cleanly on modern Node.js and browser tooling while preserving the original static-dashboard model.
+
+Current maintenance baseline:
+
+- Node.js 20+ supported
+- Node.js 22 used for local development
+- Grunt 1.x build chain
+- `npm audit` clean at the maintained dependency layer
+- Static Docker image served by nginx
+- GitHub Actions CI for Node 20 and 22
+
 ### How to Use
 
 Freeboard can be run entirely from a local hard drive. Simply download/clone the repository and open index.html. When using Chrome, you may run into issues with CORS when accessing JSON based APIs if you load from your local hard-drive— in this case you can switch to using JSONP or load index.html and run from a local or remote web server.
 
-1. git clone https://github.com/Freeboard/freeboard.git
+1. git clone https://github.com/LeoStehlik/freeboard.git
 2. cd freeboard
 3. npm install
-4. grunt
+4. npm run build
 
 Then run a index.html or index-dev.html through a webserver.
+
+For a quick local server:
+
+```bash
+npm run serve
+```
+
+Then open http://localhost:8080.
+
+### Development
+
+```bash
+npm install
+npm run build
+npm run verify
+```
+
+`npm run verify` runs an npm audit and then rebuilds the distributable CSS and JavaScript bundles.
+
+### Docker
+
+Build and serve freeboard with nginx:
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:8003.
 
 ### API
 
