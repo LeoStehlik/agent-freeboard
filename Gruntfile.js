@@ -87,26 +87,19 @@ module.exports = function(grunt) {
                     'js/freeboard_plugins.min.js' : [ 'js/freeboard_plugins.js' ]
                 }
             }
-        },
-        'string-replace': {
-            css: {
-                files: {
-                    'css/': 'css/*.css'
-                },
-                options: {
-                    replacements: [{
-                        pattern: /..\/..\/..\/img/ig,
-                        replacement: '../img'
-                    }]
-                }
-            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
-    grunt.loadNpmTasks('grunt-string-replace');
-    grunt.registerTask('default', [ 'concat:css', 'cssmin:css', 'concat:fb', 'concat:thirdparty', 'concat:plugins', 'concat:fb_plugins', 'uglify:fb', 'uglify:plugins', 'uglify:fb_plugins', 'uglify:thirdparty', 'string-replace:css' ]);
+
+    grunt.registerTask('fix-css-paths', 'Rewrite built CSS asset paths for distribution.', function() {
+        grunt.file.expand('css/*.css').forEach(function(file) {
+            var css = grunt.file.read(file).replace(/\.\.\/\.\.\/\.\.\/img/ig, '../img');
+            grunt.file.write(file, css);
+        });
+    });
+
+    grunt.registerTask('default', [ 'concat:css', 'cssmin:css', 'fix-css-paths', 'concat:fb', 'concat:thirdparty', 'concat:plugins', 'concat:fb_plugins', 'uglify:fb', 'uglify:plugins', 'uglify:fb_plugins', 'uglify:thirdparty' ]);
 };

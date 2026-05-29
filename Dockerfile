@@ -1,20 +1,15 @@
-FROM node:6
+FROM node:22-alpine AS build
 
-RUN mkdir -p /usr/share/nginx/html
+WORKDIR /app
 
-COPY . /usr/share/nginx/html/
+COPY package*.json ./
+RUN npm ci
 
-RUN chown -R node:node /usr/share/nginx/html
+COPY . .
+RUN npm run build
 
-USER node
+FROM nginx:1.27-alpine
 
-WORKDIR /usr/share/nginx/html
+COPY --from=build /app /usr/share/nginx/html
 
-RUN npm install; \
-    npm install grunt-cli underscore
-
-RUN ./node_modules/.bin/grunt
-
-VOLUME ["/usr/share/nginx/html"]
-
-CMD ["bash"]
+EXPOSE 80

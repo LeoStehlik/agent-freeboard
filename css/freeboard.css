@@ -771,7 +771,7 @@ html {
 body {
 	background-color: #101214;
 	color: #8b8b8b;
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 	font-size: 14px;
 	line-height: 20px;
 	height: 100%;
@@ -912,7 +912,7 @@ input[type="color"],
 	vertical-align: middle;
 	-webkit-border-radius: 0px;
 	-moz-border-radius: 0px;
-	border-radius: -px;
+	border-radius: 0;
 	width: 400px;
 }
 
@@ -1113,7 +1113,7 @@ a {
 
 a:hover,
 a:focus {
-	color: #005580;
+	color: #d7ad69;
 	text-decoration: underline;
 }
 
@@ -1316,7 +1316,7 @@ header h1 {
 	color: #d3d4d4;
 	font-size: 20px;
 	font-weight: 100;
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	letter-spacing: 1px;

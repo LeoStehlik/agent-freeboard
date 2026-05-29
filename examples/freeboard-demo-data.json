@@ -1,0 +1,22 @@
+{
+  "system": {
+    "status": "Nominal",
+    "queue_depth": 42,
+    "latency_ms": 128,
+    "uptime_percent": 99.94,
+    "error_rate_percent": 0.18,
+    "deploy_ok": true
+  },
+  "business": {
+    "active_users": 1842,
+    "conversion_percent": 8.7,
+    "monthly_revenue": 42800,
+    "target_revenue": 50000
+  },
+  "environment": {
+    "temperature_c": 21.4,
+    "humidity_percent": 44,
+    "power_kw": 7.8,
+    "rack_door_closed": true
+  }
+}
