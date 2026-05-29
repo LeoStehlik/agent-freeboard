@@ -1,0 +1,161 @@
+{
+  "allow_edit": true,
+  "header_image": "",
+  "datasources": [
+    {
+      "name": "Office Status",
+      "type": "JSON",
+      "settings": {
+        "url": "examples/office-status.json",
+        "refresh": 15,
+        "method": "GET",
+        "body": "",
+        "headers": []
+      }
+    }
+  ],
+  "panes": [
+    {
+      "title": "Focus",
+      "width": 1,
+      "row": {
+        "3": 1
+      },
+      "col": {
+        "3": 1
+      },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Current Focus",
+            "size": "big",
+            "value": "datasources[\"Office Status\"].focus.name",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "gauge",
+          "settings": {
+            "title": "Progress",
+            "value": "datasources[\"Office Status\"].focus.pct",
+            "units": "%",
+            "min_value": 0,
+            "max_value": 100,
+            "show_value": true
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Updated",
+            "size": "regular",
+            "value": "datasources[\"Office Status\"].updated",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        }
+      ]
+    },
+    {
+      "title": "Agents",
+      "width": 1,
+      "row": {
+        "3": 1
+      },
+      "col": {
+        "3": 2
+      },
+      "widgets": [
+        {
+          "type": "indicator",
+          "settings": {
+            "title": "Francis",
+            "value": "datasources[\"Office Status\"].agents.francis.status === \"completed\" || datasources[\"Office Status\"].agents.francis.status === \"active\"",
+            "on_text": "Ready",
+            "off_text": "Check"
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Francis Task",
+            "size": "regular",
+            "value": "datasources[\"Office Status\"].agents.francis.task",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "indicator",
+          "settings": {
+            "title": "Nox",
+            "value": "datasources[\"Office Status\"].agents.nox.status === \"idle\"",
+            "on_text": "Idle",
+            "off_text": "Busy"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recent Work",
+      "width": 1,
+      "row": {
+        "3": 1
+      },
+      "col": {
+        "3": 3
+      },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Latest",
+            "size": "big",
+            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/name\")",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "gauge",
+          "settings": {
+            "title": "Latest Progress",
+            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/pct\")",
+            "units": "%",
+            "min_value": 0,
+            "max_value": 100,
+            "show_value": true
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Previous",
+            "size": "regular",
+            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/1/name\")",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Before That",
+            "size": "regular",
+            "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/2/name\")",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        }
+      ]
+    }
+  ]
+}

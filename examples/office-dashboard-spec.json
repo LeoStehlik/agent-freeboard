@@ -1,0 +1,79 @@
+{
+  "allow_edit": true,
+  "datasources": [
+    {
+      "name": "Office Status",
+      "type": "JSON",
+      "url": "examples/office-status.json",
+      "refresh": 15
+    }
+  ],
+  "metrics": [
+    {
+      "pane": "Focus",
+      "title": "Current Focus",
+      "value": "datasources[\"Office Status\"].focus.name",
+      "size": "big"
+    },
+    {
+      "pane": "Focus",
+      "title": "Progress",
+      "value": "datasources[\"Office Status\"].focus.pct",
+      "kind": "gauge",
+      "min": 0,
+      "max": 100,
+      "units": "%"
+    },
+    {
+      "pane": "Focus",
+      "title": "Updated",
+      "value": "datasources[\"Office Status\"].updated"
+    },
+    {
+      "pane": "Agents",
+      "title": "Francis",
+      "value": "datasources[\"Office Status\"].agents.francis.status === \"completed\" || datasources[\"Office Status\"].agents.francis.status === \"active\"",
+      "kind": "indicator",
+      "on_text": "Ready",
+      "off_text": "Check"
+    },
+    {
+      "pane": "Agents",
+      "title": "Francis Task",
+      "value": "datasources[\"Office Status\"].agents.francis.task"
+    },
+    {
+      "pane": "Agents",
+      "title": "Nox",
+      "value": "datasources[\"Office Status\"].agents.nox.status === \"idle\"",
+      "kind": "indicator",
+      "on_text": "Idle",
+      "off_text": "Busy"
+    },
+    {
+      "pane": "Recent Work",
+      "title": "Latest",
+      "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/name\")",
+      "size": "big"
+    },
+    {
+      "pane": "Recent Work",
+      "title": "Latest Progress",
+      "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/0/pct\")",
+      "kind": "gauge",
+      "min": 0,
+      "max": 100,
+      "units": "%"
+    },
+    {
+      "pane": "Recent Work",
+      "title": "Previous",
+      "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/1/name\")"
+    },
+    {
+      "pane": "Recent Work",
+      "title": "Before That",
+      "value": "freeboard.selectPath(datasources[\"Office Status\"], \"/history/2/name\")"
+    }
+  ]
+}

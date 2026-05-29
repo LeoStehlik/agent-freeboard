@@ -3,7 +3,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
 
 const repoRoot = process.cwd();
-const dashboards = ["examples/freeboard-demo.json", "examples/rl78.json", "examples/weather.json"];
+const dashboards = [
+  "examples/freeboard-demo.json",
+  "examples/office-dashboard.json",
+  "examples/rl78.json",
+  "examples/weather.json",
+];
 const missing = [];
 
 function readJson(file) {
