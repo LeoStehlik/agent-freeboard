@@ -53,6 +53,12 @@ npm run serve
 
 Then open http://localhost:8080.
 
+To see a working dashboard immediately, open:
+
+```text
+http://localhost:8080/#source=examples/freeboard-demo.json
+```
+
 ### Development
 
 ```bash
@@ -61,7 +67,7 @@ npm run build
 npm run verify
 ```
 
-`npm run verify` runs an npm audit, rebuilds the distributable CSS and JavaScript bundles, and checks that the HTML/CSS static asset references still resolve.
+`npm run verify` runs an npm audit, rebuilds the distributable CSS and JavaScript bundles, checks that the HTML/CSS static asset references still resolve, and validates the bundled example dashboards.
 
 ### Docker
 

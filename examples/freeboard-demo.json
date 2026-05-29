@@ -1,0 +1,222 @@
+{
+  "allow_edit": true,
+  "header_image": "",
+  "datasources": [
+    {
+      "name": "Demo API",
+      "type": "JSON",
+      "settings": {
+        "url": "examples/freeboard-demo-data.json",
+        "use_thingproxy": false,
+        "refresh": 5,
+        "method": "GET",
+        "body": "",
+        "headers": []
+      }
+    },
+    {
+      "name": "Clock",
+      "type": "clock",
+      "settings": {
+        "refresh": 1
+      }
+    }
+  ],
+  "panes": [
+    {
+      "title": "Operations",
+      "width": 1,
+      "row": { "3": 1 },
+      "col": { "3": 1 },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "System",
+            "size": "regular",
+            "value": "datasources[\"Demo API\"].system.status",
+            "sparkline": false,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "indicator",
+          "settings": {
+            "title": "Deploy Window",
+            "value": "datasources[\"Demo API\"].system.deploy_ok",
+            "on_text": "Clear",
+            "off_text": "Hold"
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Queue Depth",
+            "size": "big",
+            "value": "datasources[\"Demo API\"].system.queue_depth",
+            "sparkline": true,
+            "animate": true,
+            "units": "jobs"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Service Health",
+      "width": 1,
+      "row": { "3": 1 },
+      "col": { "3": 2 },
+      "widgets": [
+        {
+          "type": "gauge",
+          "settings": {
+            "title": "Uptime",
+            "value": "datasources[\"Demo API\"].system.uptime_percent",
+            "units": "%",
+            "min_value": 95,
+            "max_value": 100
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Latency",
+            "size": "regular",
+            "value": "datasources[\"Demo API\"].system.latency_ms",
+            "sparkline": true,
+            "animate": true,
+            "units": "ms"
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Errors",
+            "size": "regular",
+            "value": "datasources[\"Demo API\"].system.error_rate_percent",
+            "sparkline": true,
+            "animate": true,
+            "units": "%"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Business",
+      "width": 1,
+      "row": { "3": 1 },
+      "col": { "3": 3 },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Active Users",
+            "size": "big",
+            "value": "datasources[\"Demo API\"].business.active_users",
+            "sparkline": true,
+            "animate": true,
+            "units": ""
+          }
+        },
+        {
+          "type": "gauge",
+          "settings": {
+            "title": "Revenue Target",
+            "value": "datasources[\"Demo API\"].business.monthly_revenue",
+            "units": "EUR",
+            "min_value": 0,
+            "max_value": "50000"
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Conversion",
+            "size": "regular",
+            "value": "datasources[\"Demo API\"].business.conversion_percent",
+            "sparkline": true,
+            "animate": true,
+            "units": "%"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Environment",
+      "width": 1,
+      "row": { "3": 8 },
+      "col": { "3": 1 },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Temperature",
+            "size": "regular",
+            "value": "datasources[\"Demo API\"].environment.temperature_c",
+            "sparkline": true,
+            "animate": true,
+            "units": "C"
+          }
+        },
+        {
+          "type": "indicator",
+          "settings": {
+            "title": "Rack Door",
+            "value": "datasources[\"Demo API\"].environment.rack_door_closed",
+            "on_text": "Closed",
+            "off_text": "Open"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Clock",
+      "width": 1,
+      "row": { "3": 8 },
+      "col": { "3": 2 },
+      "widgets": [
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Local Time",
+            "size": "regular",
+            "value": "datasources.Clock.time_string_value",
+            "sparkline": false,
+            "animate": false,
+            "units": ""
+          }
+        },
+        {
+          "type": "text_widget",
+          "settings": {
+            "title": "Date",
+            "size": "regular",
+            "value": "datasources.Clock.date_string_value",
+            "sparkline": false,
+            "animate": false,
+            "units": ""
+          }
+        }
+      ]
+    },
+    {
+      "title": "Power",
+      "width": 1,
+      "row": { "3": 8 },
+      "col": { "3": 3 },
+      "widgets": [
+        {
+          "type": "gauge",
+          "settings": {
+            "title": "Load",
+            "value": "datasources[\"Demo API\"].environment.power_kw",
+            "units": "kW",
+            "min_value": 0,
+            "max_value": 12
+          }
+        }
+      ]
+    }
+  ]
+}

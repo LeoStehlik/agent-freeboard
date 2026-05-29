@@ -14,7 +14,8 @@
   "scripts": {
     "build": "grunt",
     "verify:assets": "node scripts/verify-static-assets.mjs",
-    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets",
+    "verify:examples": "node scripts/verify-dashboard-examples.mjs",
+    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples",
     "serve": "python3 -m http.server 8080"
   },
   "devDependencies": {
