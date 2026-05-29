@@ -156,10 +156,10 @@ Then open:
 http://localhost:8003/
 ```
 
-The Container workflow publishes images to GitHub Container Registry as `ghcr.io/leostehlik/agent-freeboard:latest`. GitHub may keep the first package private until the owner flips package visibility to public. After that, run:
+The Container workflow publishes the standalone repository image to GitHub Container Registry as `ghcr.io/leostehlik/agent-freeboard-standalone:latest`. The original `ghcr.io/leostehlik/agent-freeboard` package name may still be attached to the archived fork package permissions. After the standalone package is public, run:
 
 ```bash
-docker run --rm -p 8003:80 ghcr.io/leostehlik/agent-freeboard:latest
+docker run --rm -p 8003:80 ghcr.io/leostehlik/agent-freeboard-standalone:latest
 ```
 
 ## Dashboard JSON

@@ -35,7 +35,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ github.repository_owner }}/agent-freeboard
+          images: ghcr.io/${{ github.repository_owner }}/agent-freeboard-standalone
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=ref,event=tag
