@@ -1,31 +1,12 @@
-freeboard
-==========
+# Freeboard
 
-**free·board** (noun) *\ˈfrē-ˌbȯrd\*
+A maintained fork of the original Freeboard static dashboard builder.
 
-1. the distance between the waterline and the main deck or weather deck of a ship or between the level of the water and the upper edge of the side of a small boat.
-2. the act of freeing data from below the "waterline" and exposing it to the world.
-3. a damn-sexy, open source real-time dashboard builder/viewer for IOT and other web mashups.
+Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It still keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
 
-### Demo
-http://freeboard.github.io/freeboard
+This fork exists because the original hosted product and old demo links are gone. The goal here is to keep the open-source dashboard useful: modern build tooling, clean static serving, better examples, safer verification, and editor polish without turning it into a heavy hosted SaaS app.
 
-https://freeboard.io
-
-### Screenshots
-![Weather](https://raw.github.com/Freeboard/branding/master/screenshots/freeboard-screenshot-1.jpg)
-
-### What is It?
-
-Freeboard is a turn-key HTML-based "engine" for dashboards. Besides a nice looking layout engine, it provides a plugin architecture for creating datasources (which fetch data) and widgets (which display data)— freeboard then does all the work to connect the two together. Another feature of freeboard is its ability to run entirely in the browser as a single-page static web app without the need for a server. The feature makes it extremely attractive as a front-end for embedded devices which may have limited ability to serve complex and dynamic web pages.
-
-The code here is the client-side portion of what you see when you visit a freeboard at http://freeboard.io. It does not include any of the server-side code for user management, saving to a database or public/private functionality— this is left up to you to implement should you want to use freeboard as an online service.
-
-### Status
-
-This fork is being refreshed so freeboard keeps working cleanly on modern Node.js and browser tooling while preserving the original static-dashboard model.
-
-Current maintenance baseline:
+## Current Status
 
 - Node.js 20+ supported
 - Node.js 22 used for local development
@@ -33,33 +14,67 @@ Current maintenance baseline:
 - `npm audit` clean at the maintained dependency layer
 - Static Docker image served by nginx
 - GitHub Actions CI for Node 20 and 22
+- Maintained bundled demo dashboard
+- Static asset and example-dashboard verification
+- First canvas-first editor affordances: inline pane titles and on-canvas add-widget controls
+- Bundled MQTT datasource using the Eclipse Paho browser client
 
-### How to Use
+## Demo
 
-Freeboard can be run entirely from a local hard drive. Simply download/clone the repository and open index.html. When using Chrome, you may run into issues with CORS when accessing JSON based APIs if you load from your local hard-drive— in this case you can switch to using JSONP or load index.html and run from a local or remote web server.
-
-1. git clone https://github.com/LeoStehlik/freeboard.git
-2. cd freeboard
-3. npm install
-4. npm run build
-
-Then run a index.html or index-dev.html through a webserver.
-
-For a quick local server:
+Run it locally:
 
 ```bash
+npm install
+npm run build
 npm run serve
 ```
 
-Then open http://localhost:8080.
-
-To see a working dashboard immediately, open:
+Then open:
 
 ```text
 http://localhost:8080/#source=examples/freeboard-demo.json
 ```
 
-### Development
+Or run the Docker/nginx preview:
+
+```bash
+docker compose up --build
+```
+
+Then open:
+
+```text
+http://localhost:8003/#source=examples/freeboard-demo.json
+```
+
+## Screenshots
+
+The historical screenshots from the original project are intentionally not embedded here. They pointed at the old upstream branding repo and made this fork look abandoned. Fresh screenshots should be generated from the maintained demo dashboard when the visual direction settles.
+
+## What It Includes
+
+Freeboard provides:
+
+- a draggable pane/grid dashboard layout
+- a browser editor for datasources, panes, and widgets
+- serializable dashboard JSON
+- bundled datasource plugins: JSON, OpenWeatherMap, Dweet.io, Playback, Clock, Octoblu, MQTT
+- bundled widget plugins: Text, Gauge, Sparkline, Pointer, Indicator, Traffic Light, Picture, Google Map, HTML
+- plugin loading for custom datasource and widget scripts
+- static build artifacts for simple hosting
+
+It does not include hosted accounts, database persistence, sharing, auth, or server-side save/load APIs. If you need those, put Freeboard behind your own application shell and use `freeboard.serialize()` / `freeboard.loadDashboard()`.
+
+## Install
+
+```bash
+git clone https://github.com/LeoStehlik/freeboard.git
+cd freeboard
+npm install
+npm run build
+```
+
+## Development
 
 ```bash
 npm install
@@ -67,21 +82,68 @@ npm run build
 npm run verify
 ```
 
-`npm run verify` runs an npm audit, rebuilds the distributable CSS and JavaScript bundles, checks that the HTML/CSS static asset references still resolve, and validates the bundled example dashboards.
+`npm run verify` runs an npm audit, rebuilds distributable CSS and JavaScript bundles, checks that HTML/CSS static asset references resolve, and validates bundled example dashboards.
 
-### Docker
+## Static Serving
 
-Build and serve freeboard with nginx:
+```bash
+npm run serve
+```
+
+Then open:
+
+```text
+http://localhost:8080/
+```
+
+## Docker
 
 ```bash
 docker compose up --build
 ```
 
-Then open http://localhost:8003.
+Then open:
 
-### API
+```text
+http://localhost:8003/
+```
 
-While freeboard runs as a stand-alone app out of the box, you can augment and control it from javascript with a simple API. All API calls are made on the `freeboard` singleton object.
+## Dashboard JSON
+
+Load a dashboard by URL hash:
+
+```text
+http://localhost:8080/#source=examples/freeboard-demo.json
+```
+
+A dashboard can also be loaded programmatically:
+
+```javascript
+freeboard.loadDashboard(configuration, function() {
+    freeboard.setEditing(false);
+});
+```
+
+## MQTT Datasource
+
+The bundled MQTT datasource uses a local Eclipse Paho browser client and connects to MQTT brokers over WebSockets.
+
+Settings:
+
+- `Broker WebSocket URL`: `ws://` or `wss://` broker URL. `%HOST%` expands to the current page host. `%WS%` expands to `ws` or `wss` based on the current page protocol.
+- `Client ID`: base client ID; a random suffix is added per browser session.
+- `Topics`: one or more topics to subscribe to. MQTT wildcards are allowed.
+
+Payload behavior:
+
+- JSON payloads are parsed into objects.
+- Plain text payloads become `{ payload: "..." }`.
+- MQTT v5 `userProperties` are copied onto the payload object.
+- The datasource exposes a `connected` boolean.
+
+## API
+
+All API calls are made on the `freeboard` singleton object.
 
 -------
 
@@ -119,39 +181,39 @@ Load the dashboard from a serialized dashboard object.
 
 **freeboard.setEditing(editing, animate)**
 
-Programatically control the editing state of the of dashboard.
+Programmatically control the editing state of the dashboard.
 
 > **editing** (bool) - Set to true or false to modify the view-only or editing state of the board.
 
-> **animate** (function) - Set to true or false to animate the modification of the editing state. This animates the top-tab dropdown (the part where you can edit datasources and such).
+> **animate** (function) - Set to true or false to animate the modification of the editing state.
 
 -------
 
 **freeboard.isEditing()**
 
-Returns boolean depending on whether the dashboard is in in the view-only or edit state.
+Returns whether the dashboard is in view-only or edit state.
 
 -------
 
 **freeboard.loadDatasourcePlugin(plugin)**
 
-Register a datasource plugin. See http://freeboard.github.io/freeboard/docs/plugin_example.html for information on creating plugins.
+Register a datasource plugin. See `docs/plugin_example.html` for information on creating plugins.
 
-> **plugin** (object) - A plugin definition object as defined at http://freeboard.github.io/freeboard/docs/plugin_example.html
+> **plugin** (object) - A datasource plugin definition object.
 
 -------
 
 **freeboard.loadWidgetPlugin(plugin)**
 
-Register a widget plugin. See http://freeboard.github.io/freeboard/docs/plugin_example.html for information on creating plugins.
+Register a widget plugin. See `docs/plugin_example.html` for information on creating plugins.
 
-> **plugin** (object) - A plugin definition object as defined at http://freeboard.github.io/freeboard/docs/plugin_example.html
+> **plugin** (object) - A widget plugin definition object.
 
 -------
 
 **freeboard.showLoadingIndicator(show)**
 
-Show/hide the loading indicator. The loading indicator will display an indicator over the entire board that can be useful when you have some code that takes a while and you want to give a visual indication and to prevent the user from modifying the board.
+Show or hide the loading indicator.
 
 > **show** (boolean) - Set to true or false to show or hide the loading indicator.
 
@@ -161,15 +223,15 @@ Show/hide the loading indicator. The loading indicator will display an indicator
 
 Show a styled dialog box with custom content.
 
-> **contentElement** (DOM or jquery element) - The DOM or jquery element to display within the content of the dialog box.
+> **contentElement** (DOM or jQuery element) - The element to display inside the dialog.
 
-> **title** (string) - The title of the dialog box displayed on the top left.
+> **title** (string) - Dialog title.
 
-> **okButtonTitle** (string) - The string to display in the button that will be used as the OK button. A null or undefined value will result in no button being displayed.
+> **okButtonTitle** (string) - OK button label. A null or undefined value hides the button.
 
-> **cancelButtonTitle** (string) - The string to display in the button that will be used as the Cancel button. A null or undefined value will result in no button being displayed.
+> **cancelButtonTitle** (string) - Cancel button label. A null or undefined value hides the button.
 
-> **okCallback** (function) - A function that will be called if the user presses the OK button.
+> **okCallback** (function) - Called if the user presses OK.
 
 -------
 
@@ -177,7 +239,7 @@ Show a styled dialog box with custom content.
 
 Returns an object with the current settings for a datasource or null if no datasource with the given name is found.
 
-> **datasourceName** (string) - The name of a datasource in the dashboard.
+> **datasourceName** (string) - The datasource name in the dashboard.
 
 -------
 
@@ -185,9 +247,9 @@ Returns an object with the current settings for a datasource or null if no datas
 
 Updates settings on a datasource.
 
-> **datasourceName** (string) - The name of a datasource in the dashboard.
+> **datasourceName** (string) - The datasource name in the dashboard.
 
-> **settings** (object) - An object of key-value pairs for the settings of the datasource. The values specified here will be combined with the current settings, so you do not need specify every setting if you only want to update one. To get a list of possible settings for a datasource, consult the datasource documentation or code, or call the freeboard.getDatasourceSettings function.
+> **settings** (object) - Key-value pairs to merge with the datasource's current settings.
 
 -------
 
@@ -195,35 +257,35 @@ Updates settings on a datasource.
 
 Attach to a global freeboard event.
 
-> **eventName** (string) - The name of a global event. The following events are supported:
+Supported events:
 
-> **"dashboard_loaded"** - Occurs after a dashboard has been loaded.
+- `dashboard_loaded`: occurs after a dashboard has loaded.
+- `initialized`: occurs after Freeboard first initializes.
 
-> **"initialized"** - Occurs after freeboard has first been initialized.
+## Building Plugins
 
-> **callback** (function) - The callback function to be called when the event occurs.
+See `docs/plugin_example.html` for the original plugin example. Custom plugins can also be loaded from the in-app Developer Console.
 
--------
+## Testing Plugins
 
-### Building Plugins
-
-See http://freeboard.github.io/freeboard/docs/plugin_example.html for info on how to build plugins for freeboard.
-
-### Testing Plugins
-
-Just edit index.html and add a link to your javascript file near the end of the head.js script loader, like:
+Edit `index.html` and add your plugin script near the `head.js` loader:
 
 ```javascript
-...
-"path/to/my/plugin/file.js",
-$(function()
-{ //DOM Ready
-    freeboard.initialize(true);
-});
+head.js("js/freeboard_plugins.min.js",
+    "path/to/my/plugin/file.js",
+    function() {
+        $(function() {
+            freeboard.initialize(true);
+        });
+    });
 ```
 
-### Copyright 
+## Notes On The Original Project
 
-Copyright © 2013 Jim Heising (https://github.com/jheising)<br/>Copyright © 2013 Bug Labs, Inc. (http://buglabs.net)<br/>Licensed under the **MIT** license.
+This repository remains MIT-licensed and preserves the original Freeboard copyright notices. The original hosted service and demo are no longer maintained; this fork is maintained as a standalone static dashboard builder.
 
----
+## License
+
+Copyright © 2013 Jim Heising (https://github.com/jheising)<br>
+Copyright © 2013 Bug Labs, Inc. (http://buglabs.net)<br>
+Licensed under the MIT license.

@@ -124,7 +124,7 @@ DeveloperConsole = function(theFreeboardModel)
 		container.append($("<p>Here you can add references to other scripts to load datasource or widget plugins.</p>"))
 			.append(table)
 			.append(addScript)
-            .append('<p>To learn how to build plugins for freeboard, please visit <a target="_blank" href="http://freeboard.github.io/freeboard/docs/plugin_example.html">http://freeboard.github.io/freeboard/docs/plugin_example.html</a></p>');
+            .append('<p>To learn how to build plugins for freeboard, open <a target="_blank" href="docs/plugin_example.html">docs/plugin_example.html</a>.</p>');
 
 		function refreshScript(scriptURL)
 		{
