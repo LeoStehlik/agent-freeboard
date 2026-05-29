@@ -14,7 +14,7 @@
 		var currentSettings = settings;
 		var errorStage = 0; 	// 0 = try standard request
 		// 1 = try JSONP
-		// 2 = try thingproxy.freeboard.io
+		// 2 = try configured CORS proxy
 		var lockErrorStage = false;
 
 		function updateRefresh(refreshTime) {
@@ -27,18 +27,22 @@
 			}, refreshTime);
 		}
 
+		function hasCorsProxy() {
+			return currentSettings.cors_proxy_url && currentSettings.cors_proxy_url.length > 0;
+		}
+
 		updateRefresh(currentSettings.refresh * 1000);
 
 		this.updateNow = function () {
-			if ((errorStage > 1 && !currentSettings.use_thingproxy) || errorStage > 2) // We've tried everything, let's quit
+			if ((errorStage > 1 && !hasCorsProxy()) || errorStage > 2) // We've tried everything, let's quit
 			{
 				return; // TODO: Report an error
 			}
 
 			var requestURL = currentSettings.url;
 
-			if (errorStage == 2 && currentSettings.use_thingproxy) {
-				requestURL = (location.protocol == "https:" ? "https:" : "http:") + "//thingproxy.freeboard.io/fetch/" + encodeURI(currentSettings.url);
+			if (errorStage == 2 && hasCorsProxy()) {
+				requestURL = currentSettings.cors_proxy_url + encodeURI(currentSettings.url);
 			}
 
 			var body = currentSettings.body;
@@ -109,11 +113,11 @@
 				type: "text"
 			},
 			{
-				name: "use_thingproxy",
-				display_name: "Try thingproxy",
-				description: 'A direct JSON connection will be tried first, if that fails, a JSONP connection will be tried. If that fails, you can use thingproxy, which can solve many connection problems to APIs. <a href="https://github.com/Freeboard/thingproxy" target="_blank">More information</a>.',
-				type: "boolean",
-				default_value: true
+				name: "cors_proxy_url",
+				display_name: "CORS Proxy URL",
+				description: "Optional proxy prefix for APIs that do not support CORS. Leave blank to try direct JSON and JSONP only. The datasource appends the encoded target URL to this value.",
+				type: "text",
+				default_value: ""
 			},
 			{
 				name: "refresh",
@@ -321,7 +325,7 @@
 		"type_name": "dweet_io",
 		"display_name": "Dweet.io",
 		"external_scripts": [
-			"http://dweet.io/client/dweet.io.min.js"
+			"https://dweet.io/client/dweet.io.min.js"
 		],
 		"settings": [
 			{

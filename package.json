@@ -2,7 +2,7 @@
   "name": "freeboard",
   "title": "freeboard",
   "version": "1.2.0",
-  "description": "A browser-based dashboard builder for real-time data mashups.",
+  "description": "A maintained static dashboard builder for JSON, MQTT, and plugin-backed real-time data.",
   "license": "MIT",
   "repository": {
     "type": "git",

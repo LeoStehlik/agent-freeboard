@@ -15,7 +15,7 @@
 
 		var currentValue = $(textElement).text();
 
-        if (currentValue == newValue)
+        if (currentValue === newValue)
             return;
 
         if ($.isNumeric(newValue) && $.isNumeric(currentValue)) {
@@ -251,6 +251,10 @@
 					valueFontSize = 60;
 				}
 			}
+			else if(newSettings.size == "small")
+			{
+				valueFontSize = 20;
+			}
 
 			valueElement.css({"font-size" : valueFontSize + "px"});
 
@@ -312,6 +316,10 @@
                 type: "option",
                 options: [
                     {
+                        name: "Small",
+                        value: "small"
+                    },
+                    {
                         name: "Regular",
                         value: "regular"
                     },
@@ -364,6 +372,10 @@
 
         var currentSettings = settings;
 
+        function showValueEnabled() {
+            return currentSettings.show_value !== false && currentSettings.show_value !== "false";
+        }
+
         function createGauge() {
             if (!rendered) {
                 return;
@@ -378,7 +390,8 @@
                 max: (_.isUndefined(currentSettings.max_value) ? 0 : currentSettings.max_value),
                 label: currentSettings.units,
                 showInnerShadow: false,
-                valueFontColor: "#d3d4d4"
+                valueFontColor: "#d3d4d4",
+                showValue: showValueEnabled()
             });
         }
 
@@ -389,7 +402,7 @@
         }
 
         this.onSettingsChanged = function (newSettings) {
-            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units) {
+            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units || newSettings.show_value != currentSettings.show_value) {
                 currentSettings = newSettings;
                 createGauge();
             }
@@ -450,6 +463,12 @@
                 display_name: "Maximum",
                 type: "text",
                 default_value: 100
+            },
+            {
+                name: "show_value",
+                display_name: "Show Value",
+                type: "boolean",
+                default_value: true
             }
         ],
         newInstance: function (settings, newInstanceCallback) {
@@ -668,10 +687,16 @@
             if(widgetElement && imageURL)
             {
                 var cacheBreakerURL = imageURL + (imageURL.indexOf("?") == -1 ? "?" : "&") + Date.now();
+                var image = new Image();
 
-                $(widgetElement).css({
-                    "background-image" :  "url(" + cacheBreakerURL + ")"
-                });
+                image.onload = function()
+                {
+                    $(widgetElement).css({
+                        "background-image" :  "url(" + cacheBreakerURL + ")"
+                    });
+                };
+
+                image.src = cacheBreakerURL;
             }
         }
 
@@ -830,6 +855,128 @@
             newInstanceCallback(new indicatorWidget(settings));
         }
     });
+
+	freeboard.addStyle('.traffic-light-stack', "display:flex;align-items:center;gap:10px;min-height:32px;");
+	freeboard.addStyle('.traffic-light-bulbs', "display:flex;gap:8px;");
+	freeboard.addStyle('.traffic-light-bulb', "border-radius:50%;width:22px;height:22px;border:2px solid #3d3d3d;background-color:#222;");
+	freeboard.addStyle('.traffic-light-bulb.red.on', "background-color:#aa0000;box-shadow:0 0 12px #aa0000;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-bulb.yellow.on', "background-color:#aaaa00;box-shadow:0 0 12px #aaaa00;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-bulb.green.on', "background-color:#009900;box-shadow:0 0 12px #009900;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-text', "overflow:hidden;text-overflow:ellipsis;");
+
+	var trafficWidget = function(settings) {
+		var titleElement = $('<h2 class="section-title"></h2>');
+		var stateElement = $('<div class="traffic-light-text"></div>');
+		var redElement = $('<div class="traffic-light-bulb red"></div>');
+		var yellowElement = $('<div class="traffic-light-bulb yellow"></div>');
+		var greenElement = $('<div class="traffic-light-bulb green"></div>');
+		var currentSettings = settings;
+		var states = {red: false, yellow: false, green: false};
+		var text = {};
+
+		function textFor(color)
+		{
+			var settingName = color + "_text";
+			return _.isUndefined(text[color]) ? (_.isUndefined(currentSettings[settingName]) ? "" : currentSettings[settingName]) : text[color];
+		}
+
+		function updateState()
+		{
+			redElement.toggleClass("on", states.red);
+			yellowElement.toggleClass("on", states.yellow);
+			greenElement.toggleClass("on", states.green);
+
+			var activeText = [];
+			_.each(["red", "yellow", "green"], function(color) {
+				if(states[color])
+				{
+					activeText.push(textFor(color));
+				}
+			});
+			stateElement.text(_.compact(activeText).join(" "));
+		}
+
+		this.render = function(element) {
+			var bulbsElement = $('<div class="traffic-light-bulbs"></div>').append(redElement).append(yellowElement).append(greenElement);
+			$(element).append(titleElement).append($('<div class="traffic-light-stack"></div>').append(bulbsElement).append(stateElement));
+		}
+
+		this.onSettingsChanged = function(newSettings) {
+			currentSettings = newSettings;
+			titleElement.html((_.isUndefined(newSettings.title) ? "" : newSettings.title));
+			updateState();
+		}
+
+		this.onCalculatedValueChanged = function(settingName, newValue) {
+			var match = settingName.match(/^(red|yellow|green)_(value|text)$/);
+			if(match)
+			{
+				if(match[2] == "value")
+				{
+					states[match[1]] = Boolean(newValue);
+				}
+				else
+				{
+					text[match[1]] = newValue;
+				}
+				updateState();
+			}
+		}
+
+		this.onDispose = function() {
+		}
+
+		this.getHeight = function() {
+			return 1;
+		}
+
+		this.onSettingsChanged(settings);
+	};
+
+	freeboard.loadWidgetPlugin({
+		type_name: "traffic",
+		display_name: "Traffic Light",
+		settings: [
+			{
+				name: "title",
+				display_name: "Title",
+				type: "text"
+			},
+			{
+				name: "red_value",
+				display_name: "Red Value",
+				type: "calculated"
+			},
+			{
+				name: "red_text",
+				display_name: "Red Text",
+				type: "calculated"
+			},
+			{
+				name: "yellow_value",
+				display_name: "Yellow Value",
+				type: "calculated"
+			},
+			{
+				name: "yellow_text",
+				display_name: "Yellow Text",
+				type: "calculated"
+			},
+			{
+				name: "green_value",
+				display_name: "Green Value",
+				type: "calculated"
+			},
+			{
+				name: "green_text",
+				display_name: "Green Text",
+				type: "calculated"
+			}
+		],
+		newInstance: function(settings, newInstanceCallback) {
+			newInstanceCallback(new trafficWidget(settings));
+		}
+	});
 
     freeboard.addStyle('.gm-style-cc a', "text-shadow:none;");
 
@@ -990,7 +1137,7 @@
         }
     });
 
-    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%");
+    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%;overflow:auto;box-sizing:border-box;");
 
     var htmlWidget = function (settings) {
         var self = this;

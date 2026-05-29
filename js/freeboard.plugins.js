@@ -14,7 +14,7 @@
 		var currentSettings = settings;
 		var errorStage = 0; 	// 0 = try standard request
 		// 1 = try JSONP
-		// 2 = try thingproxy.freeboard.io
+		// 2 = try configured CORS proxy
 		var lockErrorStage = false;
 
 		function updateRefresh(refreshTime) {
@@ -27,18 +27,22 @@
 			}, refreshTime);
 		}
 
+		function hasCorsProxy() {
+			return currentSettings.cors_proxy_url && currentSettings.cors_proxy_url.length > 0;
+		}
+
 		updateRefresh(currentSettings.refresh * 1000);
 
 		this.updateNow = function () {
-			if ((errorStage > 1 && !currentSettings.use_thingproxy) || errorStage > 2) // We've tried everything, let's quit
+			if ((errorStage > 1 && !hasCorsProxy()) || errorStage > 2) // We've tried everything, let's quit
 			{
 				return; // TODO: Report an error
 			}
 
 			var requestURL = currentSettings.url;
 
-			if (errorStage == 2 && currentSettings.use_thingproxy) {
-				requestURL = (location.protocol == "https:" ? "https:" : "http:") + "//thingproxy.freeboard.io/fetch/" + encodeURI(currentSettings.url);
+			if (errorStage == 2 && hasCorsProxy()) {
+				requestURL = currentSettings.cors_proxy_url + encodeURI(currentSettings.url);
 			}
 
 			var body = currentSettings.body;
@@ -109,11 +113,11 @@
 				type: "text"
 			},
 			{
-				name: "use_thingproxy",
-				display_name: "Try thingproxy",
-				description: 'A direct JSON connection will be tried first, if that fails, a JSONP connection will be tried. If that fails, you can use thingproxy, which can solve many connection problems to APIs. <a href="https://github.com/Freeboard/thingproxy" target="_blank">More information</a>.',
-				type: "boolean",
-				default_value: true
+				name: "cors_proxy_url",
+				display_name: "CORS Proxy URL",
+				description: "Optional proxy prefix for APIs that do not support CORS. Leave blank to try direct JSON and JSONP only. The datasource appends the encoded target URL to this value.",
+				type: "text",
+				default_value: ""
 			},
 			{
 				name: "refresh",
@@ -321,7 +325,7 @@
 		"type_name": "dweet_io",
 		"display_name": "Dweet.io",
 		"external_scripts": [
-			"http://dweet.io/client/dweet.io.min.js"
+			"https://dweet.io/client/dweet.io.min.js"
 		],
 		"settings": [
 			{
@@ -652,6 +656,229 @@ freeboard.loadDatasourcePlugin({
 
 }());
 
+// MQTT datasource plugin, adapted from joed74/freeboard-mqtt.
+(function()
+{
+	var mqttDatasource = function(settings, updateCallback)
+	{
+		var self = this;
+		var data = {};
+		var client;
+		var currentSettings = settings;
+
+		function configuredTopics()
+		{
+			return _.filter(currentSettings.topics || [], function(entry)
+			{
+				return entry && entry.topic && entry.topic.length > 0;
+			});
+		}
+
+		function brokerURL()
+		{
+			var transport = location.protocol == "https:" ? "wss" : "ws";
+			return currentSettings.server.replace("%HOST%", location.host).replace("%WS%", transport);
+		}
+
+		function disconnect()
+		{
+			if(!_.isUndefined(client))
+			{
+				client.onConnectionLost = function() {};
+				client.onMessageArrived = function() {};
+
+				if(client.isConnected())
+				{
+					client.disconnect();
+				}
+
+				client = undefined;
+			}
+		}
+
+		function publishUpdate()
+		{
+			updateCallback(_.clone(data));
+		}
+
+		function onConnect()
+		{
+			client.onConnectionLost = onConnectionLost;
+			client.onMessageArrived = onMessageArrived;
+
+			_.each(configuredTopics(), function(entry)
+			{
+				client.subscribe(entry.topic);
+
+				if(entry.topic.search(/[+#]/g) == -1 && _.isUndefined(data[entry.topic]))
+				{
+					data[entry.topic] = {};
+				}
+			});
+
+			data.connected = true;
+			publishUpdate();
+		}
+
+		function onConnectionLost(responseObject)
+		{
+			if(responseObject.errorCode !== 0)
+			{
+				console.log("MQTT connection lost: " + responseObject.errorMessage);
+			}
+
+			data.connected = false;
+			publishUpdate();
+		}
+
+		function onMessageArrived(message)
+		{
+			var payload = message.payloadString;
+			var value;
+
+			try
+			{
+				value = JSON.parse(payload);
+			}
+			catch(e)
+			{
+				value = payload;
+			}
+
+			if(!value || typeof value !== "object")
+			{
+				value = { payload: payload };
+			}
+
+			if(message.properties && message.properties.userProperties)
+			{
+				_.each(message.properties.userProperties, function(propertyValue, propertyName)
+				{
+					value[propertyName] = propertyValue;
+				});
+			}
+
+			data[message.destinationName] = value;
+			publishUpdate();
+		}
+
+		function onFailure(message)
+		{
+			data.connected = false;
+			publishUpdate();
+			console.log("MQTT connection failed: " + message.errorMessage);
+		}
+
+		function connect()
+		{
+			disconnect();
+
+			var clientId = currentSettings.client_id + "_" + Math.floor(Math.random() * 100000 + 1);
+
+			try
+			{
+				data = { connected: false };
+				publishUpdate();
+
+				client = new Paho.Client(brokerURL(), clientId);
+				client.connect({
+					timeout: 3,
+					onSuccess: onConnect,
+					onFailure: onFailure,
+					reconnect: true,
+					cleanSession: true
+				});
+			}
+			catch(e)
+			{
+				console.log(e.toString());
+			}
+		}
+
+		self.send = function(name, value)
+		{
+			if(!_.isUndefined(client) && client.isConnected())
+			{
+				var message = new Paho.Message(String(value));
+				var matches = name.match(/\[[^\s\[\]]+\]/g);
+
+				if(matches)
+				{
+					message.destinationName = matches[0].replace(/[\[\]\"\']/g, "") + "/set";
+				}
+				else
+				{
+					message.destinationName = name.replace(/[\[\]\"\']/g, "") + "/set";
+				}
+
+				client.send(message);
+			}
+		};
+
+		self.onSettingsChanged = function(newSettings)
+		{
+			currentSettings = newSettings;
+			connect();
+		};
+
+		self.updateNow = function()
+		{
+			publishUpdate();
+		};
+
+		self.onDispose = function()
+		{
+			disconnect();
+		};
+
+		connect();
+	};
+
+	freeboard.loadDatasourcePlugin({
+		type_name: "paho_mqtt_js",
+		display_name: "MQTT",
+		description: "Receive data from an MQTT broker over WebSockets.",
+		external_scripts: [
+			"plugins/thirdparty/paho-mqtt.js"
+		],
+		settings: [
+			{
+				name: "server",
+				display_name: "Broker WebSocket URL",
+				type: "text",
+				description: "Use ws:// or wss://. %HOST% expands to this page host, and %WS% chooses ws/wss from the page protocol.",
+				required: true
+			},
+			{
+				name: "client_id",
+				display_name: "Client ID",
+				type: "text",
+				default_value: "freeboard",
+				required: true
+			},
+			{
+				name: "topics",
+				display_name: "Topics",
+				description: "Topics to subscribe to. MQTT wildcards are allowed.",
+				type: "array",
+				required: true,
+				settings: [
+					{
+						name: "topic",
+						display_name: "Topic",
+						type: "text",
+						required: true
+					}
+				]
+			}
+		],
+		newInstance: function(settings, newInstanceCallback, updateCallback)
+		{
+			newInstanceCallback(new mqttDatasource(settings, updateCallback));
+		}
+	});
+}());
+
 // ┌────────────────────────────────────────────────────────────────────┐ \\
 // │ F R E E B O A R D                                                  │ \\
 // ├────────────────────────────────────────────────────────────────────┤ \\
@@ -669,7 +896,7 @@ freeboard.loadDatasourcePlugin({
 
 		var currentValue = $(textElement).text();
 
-        if (currentValue == newValue)
+        if (currentValue === newValue)
             return;
 
         if ($.isNumeric(newValue) && $.isNumeric(currentValue)) {
@@ -905,6 +1132,10 @@ freeboard.loadDatasourcePlugin({
 					valueFontSize = 60;
 				}
 			}
+			else if(newSettings.size == "small")
+			{
+				valueFontSize = 20;
+			}
 
 			valueElement.css({"font-size" : valueFontSize + "px"});
 
@@ -966,6 +1197,10 @@ freeboard.loadDatasourcePlugin({
                 type: "option",
                 options: [
                     {
+                        name: "Small",
+                        value: "small"
+                    },
+                    {
                         name: "Regular",
                         value: "regular"
                     },
@@ -1018,6 +1253,10 @@ freeboard.loadDatasourcePlugin({
 
         var currentSettings = settings;
 
+        function showValueEnabled() {
+            return currentSettings.show_value !== false && currentSettings.show_value !== "false";
+        }
+
         function createGauge() {
             if (!rendered) {
                 return;
@@ -1032,7 +1271,8 @@ freeboard.loadDatasourcePlugin({
                 max: (_.isUndefined(currentSettings.max_value) ? 0 : currentSettings.max_value),
                 label: currentSettings.units,
                 showInnerShadow: false,
-                valueFontColor: "#d3d4d4"
+                valueFontColor: "#d3d4d4",
+                showValue: showValueEnabled()
             });
         }
 
@@ -1043,7 +1283,7 @@ freeboard.loadDatasourcePlugin({
         }
 
         this.onSettingsChanged = function (newSettings) {
-            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units) {
+            if (newSettings.min_value != currentSettings.min_value || newSettings.max_value != currentSettings.max_value || newSettings.units != currentSettings.units || newSettings.show_value != currentSettings.show_value) {
                 currentSettings = newSettings;
                 createGauge();
             }
@@ -1104,6 +1344,12 @@ freeboard.loadDatasourcePlugin({
                 display_name: "Maximum",
                 type: "text",
                 default_value: 100
+            },
+            {
+                name: "show_value",
+                display_name: "Show Value",
+                type: "boolean",
+                default_value: true
             }
         ],
         newInstance: function (settings, newInstanceCallback) {
@@ -1322,10 +1568,16 @@ freeboard.loadDatasourcePlugin({
             if(widgetElement && imageURL)
             {
                 var cacheBreakerURL = imageURL + (imageURL.indexOf("?") == -1 ? "?" : "&") + Date.now();
+                var image = new Image();
 
-                $(widgetElement).css({
-                    "background-image" :  "url(" + cacheBreakerURL + ")"
-                });
+                image.onload = function()
+                {
+                    $(widgetElement).css({
+                        "background-image" :  "url(" + cacheBreakerURL + ")"
+                    });
+                };
+
+                image.src = cacheBreakerURL;
             }
         }
 
@@ -1484,6 +1736,128 @@ freeboard.loadDatasourcePlugin({
             newInstanceCallback(new indicatorWidget(settings));
         }
     });
+
+	freeboard.addStyle('.traffic-light-stack', "display:flex;align-items:center;gap:10px;min-height:32px;");
+	freeboard.addStyle('.traffic-light-bulbs', "display:flex;gap:8px;");
+	freeboard.addStyle('.traffic-light-bulb', "border-radius:50%;width:22px;height:22px;border:2px solid #3d3d3d;background-color:#222;");
+	freeboard.addStyle('.traffic-light-bulb.red.on', "background-color:#aa0000;box-shadow:0 0 12px #aa0000;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-bulb.yellow.on', "background-color:#aaaa00;box-shadow:0 0 12px #aaaa00;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-bulb.green.on', "background-color:#009900;box-shadow:0 0 12px #009900;border-color:#FDF1DF;");
+	freeboard.addStyle('.traffic-light-text', "overflow:hidden;text-overflow:ellipsis;");
+
+	var trafficWidget = function(settings) {
+		var titleElement = $('<h2 class="section-title"></h2>');
+		var stateElement = $('<div class="traffic-light-text"></div>');
+		var redElement = $('<div class="traffic-light-bulb red"></div>');
+		var yellowElement = $('<div class="traffic-light-bulb yellow"></div>');
+		var greenElement = $('<div class="traffic-light-bulb green"></div>');
+		var currentSettings = settings;
+		var states = {red: false, yellow: false, green: false};
+		var text = {};
+
+		function textFor(color)
+		{
+			var settingName = color + "_text";
+			return _.isUndefined(text[color]) ? (_.isUndefined(currentSettings[settingName]) ? "" : currentSettings[settingName]) : text[color];
+		}
+
+		function updateState()
+		{
+			redElement.toggleClass("on", states.red);
+			yellowElement.toggleClass("on", states.yellow);
+			greenElement.toggleClass("on", states.green);
+
+			var activeText = [];
+			_.each(["red", "yellow", "green"], function(color) {
+				if(states[color])
+				{
+					activeText.push(textFor(color));
+				}
+			});
+			stateElement.text(_.compact(activeText).join(" "));
+		}
+
+		this.render = function(element) {
+			var bulbsElement = $('<div class="traffic-light-bulbs"></div>').append(redElement).append(yellowElement).append(greenElement);
+			$(element).append(titleElement).append($('<div class="traffic-light-stack"></div>').append(bulbsElement).append(stateElement));
+		}
+
+		this.onSettingsChanged = function(newSettings) {
+			currentSettings = newSettings;
+			titleElement.html((_.isUndefined(newSettings.title) ? "" : newSettings.title));
+			updateState();
+		}
+
+		this.onCalculatedValueChanged = function(settingName, newValue) {
+			var match = settingName.match(/^(red|yellow|green)_(value|text)$/);
+			if(match)
+			{
+				if(match[2] == "value")
+				{
+					states[match[1]] = Boolean(newValue);
+				}
+				else
+				{
+					text[match[1]] = newValue;
+				}
+				updateState();
+			}
+		}
+
+		this.onDispose = function() {
+		}
+
+		this.getHeight = function() {
+			return 1;
+		}
+
+		this.onSettingsChanged(settings);
+	};
+
+	freeboard.loadWidgetPlugin({
+		type_name: "traffic",
+		display_name: "Traffic Light",
+		settings: [
+			{
+				name: "title",
+				display_name: "Title",
+				type: "text"
+			},
+			{
+				name: "red_value",
+				display_name: "Red Value",
+				type: "calculated"
+			},
+			{
+				name: "red_text",
+				display_name: "Red Text",
+				type: "calculated"
+			},
+			{
+				name: "yellow_value",
+				display_name: "Yellow Value",
+				type: "calculated"
+			},
+			{
+				name: "yellow_text",
+				display_name: "Yellow Text",
+				type: "calculated"
+			},
+			{
+				name: "green_value",
+				display_name: "Green Value",
+				type: "calculated"
+			},
+			{
+				name: "green_text",
+				display_name: "Green Text",
+				type: "calculated"
+			}
+		],
+		newInstance: function(settings, newInstanceCallback) {
+			newInstanceCallback(new trafficWidget(settings));
+		}
+	});
 
     freeboard.addStyle('.gm-style-cc a', "text-shadow:none;");
 
@@ -1644,7 +2018,7 @@ freeboard.loadDatasourcePlugin({
         }
     });
 
-    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%");
+    freeboard.addStyle('.html-widget', "white-space:normal;width:100%;height:100%;overflow:auto;box-sizing:border-box;");
 
     var htmlWidget = function (settings) {
         var self = this;

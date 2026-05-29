@@ -56,7 +56,7 @@ DatasourceModel = function(theFreeboardModel, datasourcePlugins) {
 			}
 
 			// Do we need to load any external scripts?
-			if(datasourceType.external_scripts)
+			if(datasourceType.external_scripts && datasourceType.external_scripts.length > 0)
 			{
 				head.js(datasourceType.external_scripts.slice(0), finishLoad); // Need to clone the array because head.js adds some weird functions to it
 			}
@@ -124,7 +124,7 @@ DeveloperConsole = function(theFreeboardModel)
 		container.append($("<p>Here you can add references to other scripts to load datasource or widget plugins.</p>"))
 			.append(table)
 			.append(addScript)
-            .append('<p>To learn how to build plugins for freeboard, please visit <a target="_blank" href="http://freeboard.github.io/freeboard/docs/plugin_example.html">http://freeboard.github.io/freeboard/docs/plugin_example.html</a></p>');
+            .append('<p>To learn how to build plugins for freeboard, open <a target="_blank" href="docs/plugin_example.html">docs/plugin_example.html</a>.</p>');
 
 		function refreshScript(scriptURL)
 		{
@@ -534,7 +534,7 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		}
 	}
 
-	this.saveDashboardClicked = function(){
+	this.saveDashboardClicked = function(_thisref, event){
 		var target = $(event.currentTarget);
 		var siblingsShown = target.data('siblings-shown') || false;
 		if(!siblingsShown){
@@ -652,7 +652,7 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		else
 		{
 			$("#toggle-header-icon").addClass("icon-chevron-up").removeClass("icon-wrench");
-			$(".gridster .gs_w").css({cursor: "pointer"});
+			$(".gridster .gs_w").css({cursor: "move"});
 			$("#main-header").animate({"top": "0px"}, animateLength);
 			$("#board-content").animate({"top": (barHeight + 20) + "px"}, animateLength);
 			$("#main-header").data().shown = true;
@@ -980,11 +980,11 @@ function FreeboardUI()
 	{
 		if(show)
 		{
-			$(element).find(".sub-section-tools").fadeIn(250);
+			$(element).find(".sub-section-tools").fadeIn(150);
 		}
 		else
 		{
-			$(element).find(".sub-section-tools").fadeOut(250);
+			$(element).find(".sub-section-tools").fadeOut(150);
 		}
 	}
 
@@ -1626,6 +1626,10 @@ PluginEditor = function(jsEditor, valueEditor)
 								{
 									newSettings.settings[settingDef.name] = Number($(this).val());
 								}
+								else if(settingDef.type == "integer")
+								{
+									newSettings.settings[settingDef.name] = parseInt($(this).val(), 10);
+								}
 								else
 								{
 									newSettings.settings[settingDef.name] = $(this).val();
@@ -2215,7 +2219,7 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 			}
 
 			// Do we need to load any external scripts?
-			if (widgetType.external_scripts) {
+			if (widgetType.external_scripts && widgetType.external_scripts.length > 0) {
 				head.js(widgetType.external_scripts.slice(0), finishLoad); // Need to clone the array because head.js adds some weird functions to it
 			}
 			else {
@@ -2304,9 +2308,14 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 						script = "[" + script.join(",") + "]";
 					}
 
+					var scriptString = script.toString();
+
 					// If there is no return, add one
-					if ((script.match(/;/g) || []).length <= 1 && script.indexOf("return") == -1) {
-						script = "return " + script;
+					if ((scriptString.match(/;/g) || []).length <= 1 && scriptString.indexOf("return") == -1) {
+						script = "return " + scriptString;
+					}
+					else {
+						script = scriptString;
 					}
 
 					var valueFunction;
@@ -2315,7 +2324,7 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 						valueFunction = new Function("datasources", script);
 					}
 					catch (e) {
-						var literalText = currentSettings[settingDef.name].replace(/"/g, '\\"').replace(/[\r\n]/g, ' \\\n');
+						var literalText = currentSettings[settingDef.name].toString().replace(/"/g, '\\"').replace(/[\r\n]/g, ' \\\n');
 
 						// If the value function cannot be created, then go ahead and treat it as literal text
 						valueFunction = new Function("datasources", "return \"" + literalText + "\";");
@@ -2369,7 +2378,7 @@ function WidgetModel(theFreeboardModel, widgetPlugins) {
 	}
 
 	this.dispose = function () {
-
+		disposeWidgetInstance();
 	}
 
 	this.serialize = function () {
@@ -2600,6 +2609,56 @@ var freeboard = (function()
 
 	var developerConsole = new DeveloperConsole(theFreeboardModel);
 
+	ko.bindingHandlers.editableText = {
+		init: function(element, valueAccessor, allBindingsAccessor)
+		{
+			var observable = valueAccessor();
+			var allBindings = allBindingsAccessor();
+			var save = function()
+			{
+				var value = $.trim($(element).text());
+				if(value.length === 0)
+				{
+					value = "Untitled Pane";
+				}
+				observable(value);
+			};
+
+			$(element)
+				.attr("spellcheck", "false")
+				.on("mousedown", function(event)
+				{
+					if($(element).attr("contenteditable") === "true")
+					{
+						event.stopPropagation();
+					}
+				})
+				.on("blur", save)
+				.on("keydown", function(event)
+				{
+					if(event.which === 13)
+					{
+						event.preventDefault();
+						$(element).blur();
+					}
+				});
+
+			ko.computed(function()
+			{
+				var editable = ko.unwrap(allBindings.editable);
+				$(element).attr("contenteditable", editable ? "true" : "false");
+			});
+		},
+		update: function(element, valueAccessor)
+		{
+			var value = ko.unwrap(valueAccessor()) || "";
+			if($(element).text() !== value)
+			{
+				$(element).text(value);
+			}
+		}
+	};
+
 	var currentStyle = {
 		values: {
 			"font-family": '"HelveticaNeue-UltraLight", "Helvetica Neue Ultra Light", "Helvetica Neue", sans-serif',
@@ -2631,6 +2690,11 @@ var freeboard = (function()
 			{
 				title = "Pane";
 			}
+
+			$(element).mousedown(function(event)
+			{
+				event.stopPropagation();
+			});
 
 			$(element).click(function(event)
 			{
@@ -2818,6 +2882,96 @@ var freeboard = (function()
 		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
 		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex.exec(location.search);
 		return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+
+	function unescapeJsonPointerSegment(segment)
+	{
+		return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+	}
+
+	function selectFromObject(data, path)
+	{
+		if(_.isUndefined(data) || data === null || _.isUndefined(path) || path === "")
+		{
+			return data;
+		}
+
+		var segments;
+
+		if(path.charAt(0) == "/")
+		{
+			segments = _.map(path.substring(1).split("/"), unescapeJsonPointerSegment);
+		}
+		else
+		{
+			segments = _.filter(path.replace(/\[(\d+)\]/g, ".$1").split("."), function(segment)
+			{
+				return segment.length > 0 && segment != "$";
+			});
+		}
+
+		return _.reduce(segments, function(currentValue, segment)
+		{
+			if(_.isUndefined(currentValue) || currentValue === null)
+			{
+				return undefined;
+			}
+
+			return currentValue[segment];
+		}, data);
+	}
+
+	function selectFromNode(data, path)
+	{
+		if(!data || !_.isFunction(document.evaluate))
+		{
+			return undefined;
+		}
+
+		var result = document.evaluate(path, data, null, XPathResult.ANY_TYPE, null);
+
+		if(result.resultType == XPathResult.STRING_TYPE)
+		{
+			return result.stringValue;
+		}
+
+		if(result.resultType == XPathResult.NUMBER_TYPE)
+		{
+			return result.numberValue;
+		}
+
+		if(result.resultType == XPathResult.BOOLEAN_TYPE)
+		{
+			return result.booleanValue;
+		}
+
+		var nodes = [];
+		var node;
+
+		while(node = result.iterateNext())
+		{
+			nodes.push(node);
+		}
+
+		if(nodes.length == 1)
+		{
+			return nodes[0].textContent;
+		}
+
+		return _.map(nodes, function(node)
+		{
+			return node.textContent;
+		});
+	}
+
+	function selectPath(data, path)
+	{
+		if(data && data.nodeType)
+		{
+			return selectFromNode(data, path);
+		}
+
+		return selectFromObject(data, path);
 	}
 
 	$(function()
@@ -3016,6 +3170,10 @@ var freeboard = (function()
 		getStyleObject      : function(name)
 		{
 			return currentStyle[name];
+		},
+		selectPath          : function(data, path)
+		{
+			return selectPath(data, path);
 		},
 		showDeveloperConsole : function()
 		{
