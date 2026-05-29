@@ -1263,11 +1263,18 @@ header h1 {
 	float: left;
 }
 
+#board-actions {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+}
+
 .project-save-mode {
-	clear: both;
-	margin-top: 12px;
-	max-width: 360px;
-	padding: 10px 12px;
+	flex: 1 1 240px;
+	min-width: 220px;
+	max-width: 320px;
+	margin-top: 0;
+	padding: 8px 10px;
 	border: 1px solid #3a3f43;
 	border-radius: 4px;
 	background: #1f2224;
@@ -2385,6 +2392,10 @@ h2.title {
 }
 
 @media screen and (max-width : 960px) {
+	#admin-bar {
+		height: 360px;
+	}
+
 	#add-pane {
 		padding-top: 10px;
 	}
@@ -2430,8 +2441,14 @@ h2.title {
 		float: left;
 	}
 
+	#board-actions {
+		display: block;
+	}
+
 	.project-save-mode {
+		clear: both;
 		max-width: none;
+		margin-top: 8px;
 	}
 
 	#board-logo {
