@@ -61,7 +61,7 @@ npm run build
 npm run verify
 ```
 
-`npm run verify` runs an npm audit and then rebuilds the distributable CSS and JavaScript bundles.
+`npm run verify` runs an npm audit, rebuilds the distributable CSS and JavaScript bundles, and checks that the HTML/CSS static asset references still resolve.
 
 ### Docker
 
