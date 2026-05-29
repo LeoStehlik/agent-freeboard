@@ -1,0 +1,44 @@
+{
+  "allow_edit": true,
+  "datasources": [
+    {
+      "name": "Demo API",
+      "type": "JSON",
+      "url": "examples/freeboard-demo-data.json",
+      "refresh": 5
+    }
+  ],
+  "metrics": [
+    {
+      "pane": "Operations",
+      "title": "System",
+      "value": "datasources[\"Demo API\"].system.status"
+    },
+    {
+      "pane": "Operations",
+      "title": "Queue Depth",
+      "value": "datasources[\"Demo API\"].system.queue_depth",
+      "kind": "text",
+      "size": "big",
+      "sparkline": true,
+      "units": "jobs"
+    },
+    {
+      "pane": "Service Health",
+      "title": "Uptime",
+      "value": "datasources[\"Demo API\"].system.uptime_percent",
+      "kind": "gauge",
+      "min": 95,
+      "max": 100,
+      "units": "%"
+    },
+    {
+      "pane": "Service Health",
+      "title": "Deploy Window",
+      "value": "datasources[\"Demo API\"].system.deploy_ok",
+      "kind": "indicator",
+      "on_text": "Clear",
+      "off_text": "Hold"
+    }
+  ]
+}

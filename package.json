@@ -1,21 +1,26 @@
 {
-  "name": "freeboard",
-  "title": "freeboard",
+  "name": "agent-freeboard",
+  "title": "agent-freeboard",
   "version": "1.2.0",
-  "description": "A maintained static dashboard builder for JSON, MQTT, and plugin-backed real-time data.",
+  "description": "AI-enabled dashboard builder and free open-source alternative to Geckoboard for JSON, MQTT, and plugin-backed real-time data.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LeoStehlik/freeboard.git"
+    "url": "https://github.com/LeoStehlik/agent-freeboard.git"
+  },
+  "bin": {
+    "agent-freeboard": "scripts/agent-freeboard.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
+    "agent-freeboard": "node scripts/agent-freeboard.mjs",
     "build": "grunt",
+    "verify:cli": "node scripts/agent-freeboard.mjs validate examples/freeboard-demo.json && node scripts/agent-freeboard.mjs create examples/agent-dashboard-spec.json --out .artifacts/agent-dashboard.json && node scripts/agent-freeboard.mjs deploy .artifacts/agent-dashboard.json --out .artifacts/agent-dashboard-site",
     "verify:assets": "node scripts/verify-static-assets.mjs",
     "verify:examples": "node scripts/verify-dashboard-examples.mjs",
-    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples",
+    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples && npm run verify:cli",
     "serve": "python3 -m http.server 8080"
   },
   "devDependencies": {

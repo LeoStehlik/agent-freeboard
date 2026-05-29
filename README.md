@@ -1,10 +1,10 @@
-# Freeboard
+# Agent Freeboard
 
-A maintained fork of the original Freeboard static dashboard builder.
+AI-enabled dashboard builder and free open-source alternative to Geckoboard, based on the original Freeboard static dashboard project.
 
-Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It still keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
+Agent Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It still keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
 
-This fork exists because the original hosted product and old demo links are gone. The goal here is to keep the open-source dashboard useful: modern build tooling, clean static serving, better examples, safer verification, and editor polish without turning it into a heavy hosted SaaS app.
+This fork exists because the original hosted product and old demo links are gone. The goal here is to keep the open-source dashboard useful while making it easier for agents and automation to build, verify, and deploy dashboards: modern build tooling, clean static serving, better examples, safer verification, editor polish, and a first CLI surface without turning it into a heavy hosted SaaS app.
 
 ## Current Status
 
@@ -18,6 +18,7 @@ This fork exists because the original hosted product and old demo links are gone
 - Static asset and example-dashboard verification
 - First canvas-first editor affordances: inline pane titles and on-canvas add-widget controls
 - Bundled MQTT datasource using the Eclipse Paho browser client
+- Agent-oriented CLI for validating, creating, and deploying static dashboard bundles
 
 ## Demo
 
@@ -53,7 +54,7 @@ The historical screenshots from the original project are intentionally not embed
 
 ## What It Includes
 
-Freeboard provides:
+Agent Freeboard provides:
 
 - a draggable pane/grid dashboard layout
 - a browser editor for datasources, panes, and widgets
@@ -63,13 +64,13 @@ Freeboard provides:
 - plugin loading for custom datasource and widget scripts
 - static build artifacts for simple hosting
 
-It does not include hosted accounts, database persistence, sharing, auth, or server-side save/load APIs. If you need those, put Freeboard behind your own application shell and use `freeboard.serialize()` / `freeboard.loadDashboard()`.
+It does not include hosted accounts, database persistence, sharing, auth, or server-side save/load APIs. If you need those, put Agent Freeboard behind your own application shell and use `freeboard.serialize()` / `freeboard.loadDashboard()`.
 
 ## Install
 
 ```bash
-git clone https://github.com/LeoStehlik/freeboard.git
-cd freeboard
+git clone https://github.com/LeoStehlik/agent-freeboard.git
+cd agent-freeboard
 npm install
 npm run build
 ```
@@ -83,6 +84,38 @@ npm run verify
 ```
 
 `npm run verify` runs an npm audit, rebuilds distributable CSS and JavaScript bundles, checks that HTML/CSS static asset references resolve, and validates bundled example dashboards.
+
+## Agent CLI
+
+The first agent-facing interface is a small Node CLI. It gives automation a stable way to validate dashboards, create dashboards from a compact spec, and package a static deployable bundle.
+
+```bash
+npm run agent-freeboard -- validate examples/freeboard-demo.json
+npm run agent-freeboard -- create examples/agent-dashboard-spec.json --out .artifacts/agent-dashboard.json
+npm run agent-freeboard -- deploy .artifacts/agent-dashboard.json --out .artifacts/agent-dashboard-site
+```
+
+The generated site opens at:
+
+```text
+.artifacts/agent-dashboard-site/index.html#source=dashboard.json
+```
+
+The compact spec is intentionally boring JSON so agents, MCP tools, scripts, and CI jobs can emit it without needing to understand every Freeboard widget field. A metric looks like:
+
+```json
+{
+  "pane": "Service Health",
+  "title": "Uptime",
+  "value": "datasources[\"Demo API\"].system.uptime_percent",
+  "kind": "gauge",
+  "min": 95,
+  "max": 100,
+  "units": "%"
+}
+```
+
+This CLI is the first product slice toward an API/MCP surface. The next clean layer is to wrap the same commands as MCP tools rather than inventing a separate dashboard contract.
 
 ## Static Serving
 
