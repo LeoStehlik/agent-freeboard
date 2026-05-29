@@ -355,4 +355,5 @@ This repository remains MIT-licensed and preserves the original Freeboard copyri
 
 Copyright © 2013 Jim Heising (https://github.com/jheising)<br>
 Copyright © 2013 Bug Labs, Inc. (http://buglabs.net)<br>
+Copyright © 2026 Leo Stehlik<br>
 Licensed under the MIT license.
