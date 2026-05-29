@@ -1,5 +1,7 @@
 # Agent Freeboard
 
+[![Build](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/LeoStehlik/agent-freeboard/actions/workflows/ci.yml)
+
 AI-enabled dashboard builder and free open-source alternative to Geckoboard, based on the original Freeboard static dashboard project.
 
 Agent Freeboard is a browser-based dashboard editor and viewer for JSON, MQTT, playback, clock, Dweet.io, OpenWeatherMap, and other plugin-backed data sources. It still keeps the original useful idea: dashboards are plain client-side HTML/CSS/JS, so they can be served as static files, embedded in small systems, or dropped behind your own auth/storage layer.
@@ -19,6 +21,10 @@ This fork exists because the original hosted product and old demo links are gone
 - First canvas-first editor affordances: inline pane titles and on-canvas add-widget controls
 - Bundled MQTT datasource using the Eclipse Paho browser client
 - Agent-oriented CLI for validating, creating, and deploying static dashboard bundles
+
+## Build Proof
+
+The GitHub Actions build runs on every push and pull request, plus manual dispatch. It installs dependencies with `npm ci` and runs `npm run verify` on Node.js 20 and 22. Verification audits maintained dependencies, rebuilds distributable bundles, checks static asset references, validates bundled dashboard examples, and exercises the `agent-freeboard` CLI validate/create/deploy path.
 
 ## Demo
 
