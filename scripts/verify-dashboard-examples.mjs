@@ -6,6 +6,7 @@ const repoRoot = process.cwd();
 const dashboards = [
   "examples/freeboard-demo.json",
   "examples/office-dashboard.json",
+  "examples/office-dashboard-editable.json",
   "examples/rl78.json",
   "examples/weather.json",
 ];

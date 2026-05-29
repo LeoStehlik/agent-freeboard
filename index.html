@@ -21,7 +21,8 @@
                         if (hashpattern !== null) {
                             $.getJSON(hashpattern[2], function(data) {
                                 freeboard.loadDashboard(data, function() {
-                                    freeboard.setEditing(false);
+                                    var editpattern = window.location.hash.match(/(&|#)edit=(true|1|yes)/i);
+                                    freeboard.setEditing(editpattern !== null);
                                 });
                             });
                         }
