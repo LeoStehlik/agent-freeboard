@@ -156,7 +156,7 @@ Then open:
 http://localhost:8003/
 ```
 
-Published images are available from GitHub Container Registry:
+The Container workflow publishes images to GitHub Container Registry as `ghcr.io/leostehlik/agent-freeboard:latest`. GitHub may keep the first package private until the owner flips package visibility to public. After that, run:
 
 ```bash
 docker run --rm -p 8003:80 ghcr.io/leostehlik/agent-freeboard:latest
