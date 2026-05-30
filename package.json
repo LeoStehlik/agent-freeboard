@@ -1,7 +1,7 @@
 {
   "name": "agent-freeboard",
   "title": "agent-freeboard",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "AI-enabled dashboard builder and free open-source alternative to Geckoboard for JSON, MQTT, and plugin-backed real-time data.",
   "license": "MIT",
   "repository": {
