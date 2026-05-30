@@ -383,7 +383,7 @@ function serveCommand(args) {
   });
 
   server.listen(port, host, () => {
-    const openUrl = `http://${host}:${port}/#source=/dashboard.json&edit=true${writeEnabled ? "&save=/api/dashboard" : ""}`;
+    const openUrl = `http://${host}:${port}/`;
     console.log(`Serving Agent Freeboard at ${openUrl}`);
     console.log(`Dashboard file: ${dashboardPath}`);
     console.log(`Write mode: ${writeEnabled ? "enabled" : "disabled"}`);

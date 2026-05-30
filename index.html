@@ -21,6 +21,23 @@
                         var savepattern = window.location.hash.match(/(&|#)save=([^&]+)/);
                         var projectSaveEndpoint = savepattern !== null ? decodeURIComponent(savepattern[2]) : "/api/dashboard";
 
+                        function loadProjectDashboard() {
+                            if (!window.agentFreeboardProjectSource) {
+                                alert("Project dashboard is unavailable in this preview.");
+                                return;
+                            }
+
+                            $.getJSON(window.agentFreeboardProjectSource)
+                                .done(function(data) {
+                                    freeboard.loadDashboard(data, function() {
+                                        freeboard.setEditing(true);
+                                    });
+                                })
+                                .fail(function(xhr) {
+                                    alert("Project dashboard load failed: " + (xhr.statusText || "unknown error"));
+                                });
+                        }
+
                         function setProjectSaveMode(available, enabled, endpoint) {
                             window.agentFreeboardDetectedSaveEndpoint = available ? endpoint : null;
                             window.agentFreeboardSaveEndpoint = available && enabled ? endpoint : null;
@@ -37,9 +54,18 @@
 
                         $.ajax({ url: projectSaveEndpoint, type: "GET", dataType: "json", cache: false })
                             .done(function(capability) {
-                                setProjectSaveMode(Boolean(capability && capability.writeEnabled), savepattern !== null && Boolean(capability && capability.writeEnabled), projectSaveEndpoint);
+                                var projectAvailable = Boolean(capability && capability.ok);
+                                var writeAvailable = Boolean(capability && capability.writeEnabled);
+                                window.agentFreeboardProjectSource = projectAvailable ? "/dashboard.json" : null;
+                                $("#project-load-dashboard").toggleClass("disabled", !projectAvailable);
+                                setProjectSaveMode(writeAvailable, writeAvailable, projectSaveEndpoint);
+                                if (hashpattern === null && projectAvailable) {
+                                    loadProjectDashboard();
+                                }
                             })
                             .fail(function() {
+                                window.agentFreeboardProjectSource = null;
+                                $("#project-load-dashboard").addClass("disabled");
                                 setProjectSaveMode(false, false, projectSaveEndpoint);
                             });
                         if (hashpattern !== null) {
@@ -50,6 +76,8 @@
                                 });
                             });
                         }
+
+                        window.agentFreeboardLoadProjectDashboard = loadProjectDashboard;
 
                     });
                 });
@@ -70,7 +98,8 @@
                 <h1 id="board-logo" class="title bordered">agent-freeboard editor</h1>
                 <div id="board-actions">
                     <ul class="board-toolbar vertical">
-                        <li data-bind="click: loadDashboardFromLocalFile"><i id="full-screen-icon" class="icon-folder-open icon-white"></i><label id="full-screen">Load Dashboard</label></li>
+                        <li data-bind="click: loadDashboardFromLocalFile"><i id="full-screen-icon" class="icon-folder-open icon-white"></i><label id="full-screen">Load JSON</label></li>
+                        <li id="project-load-dashboard" class="disabled" data-bind="click: loadDashboardFromProject"><i class="icon-refresh icon-white"></i><label>Load Project</label></li>
                         <li><i class="icon-download-alt icon-white"></i><label data-bind="click: saveDashboardClicked">Save Dashboard</label></li>
                         <li id="add-pane" data-bind="click: createPane"><i class="icon-plus icon-white"></i><label>Add Pane</label></li>
                     </ul>

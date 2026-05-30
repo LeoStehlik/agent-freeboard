@@ -534,6 +534,17 @@ function FreeboardModel(datasourcePlugins, widgetPlugins, freeboardUI)
 		}
 	}
 
+	this.loadDashboardFromProject = function()
+	{
+		if(_.isFunction(window.agentFreeboardLoadProjectDashboard))
+		{
+			window.agentFreeboardLoadProjectDashboard();
+			return;
+		}
+
+		alert("Project dashboard is unavailable in this preview.");
+	}
+
 	this.saveDashboardClicked = function(_thisref, event){
 		if(window.agentFreeboardSaveEndpoint)
 		{

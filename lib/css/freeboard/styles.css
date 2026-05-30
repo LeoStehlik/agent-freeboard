@@ -1905,6 +1905,16 @@ ul.board-toolbar.vertical {
 	float: none;
 }
 
+.board-toolbar li.disabled {
+	cursor: default;
+	color: #737b81;
+}
+
+.board-toolbar li.disabled:hover {
+	background-color: rgba(75, 75, 75, 0.0);
+	margin-top: 0;
+}
+
 .board-toolbar li:hover {
 	background-color: rgba(75, 75, 75, 1.0);
 
