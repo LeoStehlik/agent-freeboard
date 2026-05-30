@@ -36,6 +36,10 @@ try {
   await waitForServer(`http://127.0.0.1:${port}/dashboard.json`);
   const html = await fetch(`http://127.0.0.1:${port}/`).then((response) => response.text());
   if (!html.includes("Project Save Mode")) throw new Error("Project Save Mode status is missing from the editor header");
+  if (!html.includes("project-save-toggle")) throw new Error("Project Save Mode checkbox is missing from the editor header");
+  if (html.includes("--write")) throw new Error("Project Save Mode UI still exposes CLI-only --write instructions");
+  const capability = await fetch(`http://127.0.0.1:${port}/api/dashboard`).then((response) => response.json());
+  if (!capability.writeEnabled) throw new Error("project save endpoint did not report write capability");
   const dashboard = await fetch(`http://127.0.0.1:${port}/dashboard.json`).then((response) => response.json());
   dashboard.panes[0].title = "Serve Save Smoke";
 

@@ -19,12 +19,29 @@
 
                         var hashpattern = window.location.hash.match(/(&|#)source=([^&]+)/);
                         var savepattern = window.location.hash.match(/(&|#)save=([^&]+)/);
-                        if (savepattern !== null) {
-                            window.agentFreeboardSaveEndpoint = decodeURIComponent(savepattern[2]);
-                            $("#project-save-mode").addClass("enabled");
-                            $("#project-save-mode-value").text("Local write-back active");
-                            $("#project-save-mode-detail").text("Save writes to " + window.agentFreeboardSaveEndpoint);
+                        var projectSaveEndpoint = savepattern !== null ? decodeURIComponent(savepattern[2]) : "/api/dashboard";
+
+                        function setProjectSaveMode(available, enabled, endpoint) {
+                            window.agentFreeboardDetectedSaveEndpoint = available ? endpoint : null;
+                            window.agentFreeboardSaveEndpoint = available && enabled ? endpoint : null;
+                            $("#project-save-toggle").prop("disabled", !available).prop("checked", Boolean(available && enabled));
+                            $("#project-save-mode").toggleClass("enabled", Boolean(available && enabled));
+                            $("#project-save-mode-value").text(available && enabled ? "Local write-back active" : "Download JSON fallback");
+                            $("#project-save-mode-detail").text(available ? (enabled ? "Save Dashboard writes to the project file." : "Save Dashboard downloads JSON.") : "Project file save is unavailable in this preview.");
                         }
+
+                        setProjectSaveMode(false, false, projectSaveEndpoint);
+                        $("#project-save-toggle").on("change", function() {
+                            setProjectSaveMode(Boolean(window.agentFreeboardDetectedSaveEndpoint), this.checked, window.agentFreeboardDetectedSaveEndpoint || projectSaveEndpoint);
+                        });
+
+                        $.ajax({ url: projectSaveEndpoint, type: "GET", dataType: "json", cache: false })
+                            .done(function(capability) {
+                                setProjectSaveMode(Boolean(capability && capability.writeEnabled), savepattern !== null && Boolean(capability && capability.writeEnabled), projectSaveEndpoint);
+                            })
+                            .fail(function() {
+                                setProjectSaveMode(false, false, projectSaveEndpoint);
+                            });
                         if (hashpattern !== null) {
                             $.getJSON(decodeURIComponent(hashpattern[2]), function(data) {
                                 freeboard.loadDashboard(data, function() {
@@ -54,17 +71,16 @@
                 <div id="board-actions">
                     <ul class="board-toolbar vertical">
                         <li data-bind="click: loadDashboardFromLocalFile"><i id="full-screen-icon" class="icon-folder-open icon-white"></i><label id="full-screen">Load Dashboard</label></li>
-                        <li><i class="icon-download-alt icon-white"></i>
-                            <label data-bind="click: saveDashboardClicked">Save Dashboard</label>
-                            <label style="display: none;" data-bind="click: saveDashboard" data-pretty="true">[Pretty]</label>
-                            <label style="display: none;" data-bind="click: saveDashboard" data-pretty="false">[Minified]</label>
-                        </li>
+                        <li><i class="icon-download-alt icon-white"></i><label data-bind="click: saveDashboardClicked">Save Dashboard</label></li>
                         <li id="add-pane" data-bind="click: createPane"><i class="icon-plus icon-white"></i><label>Add Pane</label></li>
                     </ul>
                     <div id="project-save-mode" class="project-save-mode">
-                        <div class="project-save-mode-label">Project Save Mode</div>
+                        <div class="project-save-mode-header">
+                            <div class="project-save-mode-label">Project Save Mode</div>
+                            <label class="project-save-toggle"><input id="project-save-toggle" type="checkbox" disabled> Save to project</label>
+                        </div>
                         <div id="project-save-mode-value" class="project-save-mode-value">Download JSON fallback</div>
-                        <div id="project-save-mode-detail" class="project-save-mode-detail">Start with <code>--write</code> to save back to disk.</div>
+                        <div id="project-save-mode-detail" class="project-save-mode-detail">Project file save is unavailable in this preview.</div>
                     </div>
                 </div>
             </div>

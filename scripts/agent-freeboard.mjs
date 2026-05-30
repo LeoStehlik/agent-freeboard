@@ -348,9 +348,14 @@ function serveCommand(args) {
       return;
     }
 
+    if (request.method === "GET" && url.pathname === "/api/dashboard") {
+      sendJson(response, 200, { ok: true, writeEnabled, endpoint: "/api/dashboard" });
+      return;
+    }
+
     if (request.method === "PUT" && url.pathname === "/api/dashboard") {
       if (!writeEnabled) {
-        sendJson(response, 403, { ok: false, error: "Write mode is disabled. Start with --write to save changes." });
+        sendJson(response, 403, { ok: false, error: "Project file save is disabled for this preview." });
         return;
       }
       try {
