@@ -1,0 +1,3 @@
+service,status,count
+api,ok,2
+worker,slow,7

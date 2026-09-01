@@ -23,12 +23,17 @@ Usage:
   agent-freeboard create <spec.json> --out <dashboard.json>
   agent-freeboard deploy <dashboard.json> --out <directory>
   agent-freeboard serve <dashboard.json> [--port 8080] [--host 127.0.0.1] [--write]
+  agent-freeboard dataset define <dataset.json> --name <name> [--columns a,b]
+  agent-freeboard dataset append <dataset.json> --row <json>
+  agent-freeboard dataset replace <dataset.json> --input <rows.json>
+  agent-freeboard dataset import-csv <csv-file> --out <dataset.json> --name <name>
 
 Commands:
   validate  Check a Freeboard dashboard JSON file.
   create    Build a dashboard JSON file from an agent-friendly spec.
   deploy    Copy the static app plus a dashboard JSON into a deployable directory.
   serve     Serve the app locally, with optional write-back to the dashboard file.
+  dataset   Define, append, replace, and import small JSON datasets for dashboard datasources.
 `);
 }
 
@@ -253,6 +258,147 @@ function deployCommand(args) {
   console.log(`Open: ${join(out, "index.html")}#source=dashboard.json`);
 }
 
+function parseColumns(value) {
+  if (!value) return [];
+  return value.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function emptyDataset(name, columns = []) {
+  return {
+    agent_freeboard_dataset: 1,
+    name,
+    columns,
+    rows: [],
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function validateDataset(dataset, source = "dataset") {
+  const errors = [];
+  if (!dataset || typeof dataset !== "object" || Array.isArray(dataset)) {
+    return [`${source} must be a JSON object.`];
+  }
+  if (dataset.agent_freeboard_dataset !== 1) errors.push(`${source}.agent_freeboard_dataset must be 1.`);
+  if (!dataset.name || typeof dataset.name !== "string") errors.push(`${source}.name is required.`);
+  if (!Array.isArray(dataset.columns)) errors.push(`${source}.columns must be an array.`);
+  if (!Array.isArray(dataset.rows)) errors.push(`${source}.rows must be an array.`);
+  for (const [index, row] of (dataset.rows ?? []).entries()) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) errors.push(`${source}.rows[${index}] must be an object.`);
+  }
+  return errors;
+}
+
+function readRows(path) {
+  const raw = readFileSync(path, "utf8").trim();
+  if (!raw) return [];
+  if (path.endsWith(".jsonl")) return raw.split(/\n+/).map((line) => JSON.parse(line));
+  const parsed = JSON.parse(raw);
+  if (Array.isArray(parsed)) return parsed;
+  if (Array.isArray(parsed.rows)) return parsed.rows;
+  fail(`Input rows must be a JSON array, JSONL file, or object with rows[]: ${path}`);
+}
+
+function coerceScalar(value) {
+  const trimmed = value.trim();
+  if (trimmed === "") return "";
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+  return trimmed;
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (quoted) {
+      if (char === '"' && next === '"') { cell += '"'; i += 1; }
+      else if (char === '"') quoted = false;
+      else cell += char;
+      continue;
+    }
+    if (char === '"') quoted = true;
+    else if (char === ",") { row.push(cell); cell = ""; }
+    else if (char === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (char !== "\r") cell += char;
+  }
+  row.push(cell);
+  if (row.some((value) => value !== "") || rows.length === 0) rows.push(row);
+  const headers = (rows.shift() ?? []).map((header) => header.trim());
+  return rows.filter((values) => values.some((value) => value.trim() !== "")).map((values) => {
+    const out = {};
+    headers.forEach((header, index) => { if (header) out[header] = coerceScalar(values[index] ?? ""); });
+    return out;
+  });
+}
+
+function writeDataset(path, dataset) {
+  dataset.updated_at = new Date().toISOString();
+  const errors = validateDataset(dataset, path);
+  if (errors.length) fail(errors.join("\n"));
+  writeJson(path, dataset);
+}
+
+function datasetCommand(args) {
+  const subcommand = args[0] ?? fail("Usage: agent-freeboard dataset <define|append|replace|import-csv> ...");
+  const rest = args.slice(1);
+
+  if (subcommand === "define") {
+    const out = rest[0] ?? fail("Usage: agent-freeboard dataset define <dataset.json> --name <name> [--columns a,b]");
+    const name = option(rest, "--name") ?? fail("dataset define requires --name");
+    const dataset = emptyDataset(name, parseColumns(option(rest, "--columns")));
+    writeDataset(out, dataset);
+    console.log(`Dataset defined: ${out}`);
+    return;
+  }
+
+  if (subcommand === "append") {
+    const file = rest[0] ?? fail("Usage: agent-freeboard dataset append <dataset.json> --row <json>");
+    const dataset = readJson(file);
+    const errors = validateDataset(dataset, file);
+    if (errors.length) fail(errors.join("\n"));
+    const rowText = option(rest, "--row") ?? fail("dataset append requires --row <json>");
+    const row = JSON.parse(rowText);
+    if (!row || typeof row !== "object" || Array.isArray(row)) fail("--row must be a JSON object");
+    dataset.rows.push(row);
+    dataset.columns = Array.from(new Set([...(dataset.columns ?? []), ...Object.keys(row)]));
+    writeDataset(file, dataset);
+    console.log(`Dataset appended: ${file} rows=${dataset.rows.length}`);
+    return;
+  }
+
+  if (subcommand === "replace") {
+    const file = rest[0] ?? fail("Usage: agent-freeboard dataset replace <dataset.json> --input <rows.json|rows.jsonl>");
+    const input = option(rest, "--input") ?? fail("dataset replace requires --input");
+    const dataset = readJson(file);
+    const rows = readRows(input);
+    dataset.rows = rows;
+    dataset.columns = Array.from(new Set([...(dataset.columns ?? []), ...rows.flatMap((row) => Object.keys(row))]));
+    writeDataset(file, dataset);
+    console.log(`Dataset replaced: ${file} rows=${dataset.rows.length}`);
+    return;
+  }
+
+  if (subcommand === "import-csv") {
+    const input = rest[0] ?? fail("Usage: agent-freeboard dataset import-csv <csv-file> --out <dataset.json> --name <name>");
+    const out = option(rest, "--out") ?? fail("dataset import-csv requires --out");
+    const name = option(rest, "--name") ?? fail("dataset import-csv requires --name");
+    const rows = parseCsv(readFileSync(input, "utf8"));
+    const columns = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
+    const dataset = emptyDataset(name, columns);
+    dataset.rows = rows;
+    writeDataset(out, dataset);
+    console.log(`Dataset imported: ${out} rows=${dataset.rows.length}`);
+    return;
+  }
+
+  fail(`Unknown dataset command: ${subcommand}`);
+}
+
 
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -401,6 +547,7 @@ if (command === "validate") validateCommand(args);
 else if (command === "create") createCommand(args);
 else if (command === "deploy") deployCommand(args);
 else if (command === "serve") serveCommand(args);
+else if (command === "dataset") datasetCommand(args);
 else {
   usage();
   fail(`Unknown command: ${command}`);

@@ -132,6 +132,31 @@ The compact spec is intentionally boring JSON so agents, MCP tools, scripts, and
 
 This CLI is the first product slice toward an API/MCP surface. The next clean layer is to wrap the same commands as MCP tools rather than inventing a separate dashboard contract.
 
+
+## Dataset CLI
+
+Agent Freeboard v1.3 adds a tiny dataset contract for agents that need to feed dashboards from scripts, cron jobs, or CSV exports without hand-editing Freeboard JSON.
+
+```bash
+npm run agent-freeboard -- dataset define .artifacts/status.json --name "Status" --columns service,status,count
+npm run agent-freeboard -- dataset append .artifacts/status.json --row '{"service":"api","status":"ok","count":2}'
+npm run agent-freeboard -- dataset import-csv examples/freeboard-demo-data.csv --out .artifacts/status-from-csv.json --name "CSV Status"
+npm run agent-freeboard -- dataset replace .artifacts/status.json --input .artifacts/status-from-csv.json
+```
+
+A dataset is deliberately plain JSON:
+
+```json
+{
+  "agent_freeboard_dataset": 1,
+  "name": "Status",
+  "columns": ["service", "status", "count"],
+  "rows": [{ "service": "api", "status": "ok", "count": 2 }]
+}
+```
+
+Use it as a JSON datasource file, then point widgets at `datasources["Status"].rows`.
+
 ## Static Serving
 
 ```bash
