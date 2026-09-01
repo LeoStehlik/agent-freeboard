@@ -1,7 +1,7 @@
 {
   "name": "agent-freeboard",
   "title": "agent-freeboard",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "AI-enabled dashboard builder and free open-source alternative to Geckoboard for JSON, MQTT, and plugin-backed real-time data.",
   "license": "MIT",
   "repository": {
@@ -20,9 +20,10 @@
     "verify:cli": "node scripts/agent-freeboard.mjs validate examples/freeboard-demo.json && node scripts/agent-freeboard.mjs create examples/agent-dashboard-spec.json --out .artifacts/agent-dashboard.json && node scripts/agent-freeboard.mjs deploy .artifacts/agent-dashboard.json --out .artifacts/agent-dashboard-site",
     "verify:assets": "node scripts/verify-static-assets.mjs",
     "verify:examples": "node scripts/verify-dashboard-examples.mjs",
-    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples && npm run verify:cli && npm run verify:serve",
+    "verify": "npm audit --audit-level=moderate && npm run build && npm run verify:assets && npm run verify:examples && npm run verify:cli && npm run verify:dataset && npm run verify:serve",
     "serve": "node scripts/agent-freeboard.mjs serve examples/freeboard-demo.json",
-    "verify:serve": "node scripts/verify-serve-save.mjs"
+    "verify:serve": "node scripts/verify-serve-save.mjs",
+    "verify:dataset": "node scripts/agent-freeboard.mjs dataset define .artifacts/status-dataset.json --name \"Status Dataset\" --columns service,status,count && node scripts/agent-freeboard.mjs dataset append .artifacts/status-dataset.json --row '{\"service\":\"api\",\"status\":\"ok\",\"count\":2}' && node scripts/agent-freeboard.mjs dataset import-csv examples/freeboard-demo-data.csv --out .artifacts/csv-dataset.json --name \"CSV Dataset\" && node scripts/agent-freeboard.mjs dataset replace .artifacts/status-dataset.json --input .artifacts/csv-dataset.json"
   },
   "devDependencies": {
     "grunt": "^1.6.2",

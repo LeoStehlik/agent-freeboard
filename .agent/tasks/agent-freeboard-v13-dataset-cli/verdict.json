@@ -1,0 +1,34 @@
+{
+  "task_id": "agent-freeboard-v13-dataset-cli",
+  "phase": "pre-release-verify",
+  "agent": "builder-local-checks",
+  "timestamp": "2026-09-01T01:45:00Z",
+  "overall": "UNKNOWN",
+  "criteria": [
+    {
+      "id": "AC1",
+      "status": "PASS",
+      "note": "CLI exposes dataset define, append, replace, and import-csv."
+    },
+    {
+      "id": "AC2",
+      "status": "PASS",
+      "note": "README and docs/dataset-cli.md document the dataset JSON contract."
+    },
+    {
+      "id": "AC3",
+      "status": "PASS",
+      "note": "npm run verify:dataset passes."
+    },
+    {
+      "id": "AC4",
+      "status": "PASS",
+      "note": "npm run verify passes with zero audit vulnerabilities."
+    },
+    {
+      "id": "AC5",
+      "status": "UNKNOWN",
+      "note": "package.json is 1.3.0; tag/release/Actions pending."
+    }
+  ]
+}
